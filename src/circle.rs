@@ -1,6 +1,6 @@
 use crate::point::{self, Point};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Circle {
     pub center: Option<point::Point>,
     pub radius: f32,

@@ -8,8 +8,9 @@ use packing::find_answer;
 use ralgo::dichotomy_step_ralgo;
 use rust_xlsxwriter::{Format, Formula, Workbook, Worksheet};
 
-use std::fs;
+use std::sync::{Arc, Mutex};
 use std::time::Instant;
+use std::{fs, thread};
 use std::{
     fs::File,
     io::{BufRead, BufReader},
@@ -36,7 +37,7 @@ fn write_row_block(
     row: u32,
     column: u16,
     main_circle_radius: f32,
-    circles: &Vec<circle::Circle>,
+    is_valid: bool,
     points: f32,
     time: f32,
     format: &Format,
@@ -48,12 +49,7 @@ fn write_row_block(
         .write_with_format(row, column + 1, points, &format)
         .ok();
     worksheet
-        .write_with_format(
-            row,
-            column + 2,
-            packing::is_valid_pack(main_circle_radius, &circles),
-            &format,
-        )
+        .write_with_format(row, column + 2, is_valid, &format)
         .ok();
     worksheet
         .write_with_format(row, column + 3, time, &format)
@@ -65,7 +61,7 @@ fn calculate_points(answer: f32, jury_answer: f32) -> f32 {
 }
 
 fn main() {
-    let mut workbook = Workbook::new();
+    let mut workbook: Workbook = Workbook::new();
     let worksheet = workbook.add_worksheet();
 
     let cell_format = Format::new().set_align(rust_xlsxwriter::FormatAlign::Center);
@@ -129,10 +125,9 @@ fn main() {
         }
 
         // heuristic packing
-        let mut start = Instant::now();
+        let start = Instant::now();
         let (main_circle_radius, circles) = find_answer(&mut radiuses, 100);
-        let mut elapsed = start.elapsed();
-        let heuristic_time = elapsed.as_secs_f32();
+        let heuristic_time = start.elapsed().as_secs_f32();
 
         // get jury answer of current test
         let row_number: u32 = (row + 1).try_into().unwrap();
@@ -147,37 +142,64 @@ fn main() {
             row_number,
             1,
             main_circle_radius,
-            &circles,
+            packing::is_valid_pack(main_circle_radius, &circles),
             points,
             heuristic_time,
             &cell_format,
         );
 
-        // run dichotomy ralgo with different parameters 
-        for (reset_step, column_start, eps) in [
+        let mut handles = vec![];
+
+        let shared_circles = Arc::new(Mutex::new(circles));
+        let shared_ralgo_results = Arc::new(Mutex::new(Vec::<(f32, f32, bool, f32)>::new()));
+
+        // run dichotomy ralgo with different parameters
+        for (reset_step, _, eps) in [
             (false, 5, 0.0),
             (true, 9, 0.0),
             (false, 13, 1e-3),
             (true, 17, 1e-3),
         ] {
-            start = Instant::now();
-            let (new_main_circle_radius, new_circles) =
-                dichotomy_step_ralgo(main_circle_radius, &circles, reset_step, eps);
-            elapsed = start.elapsed();
+            let thread_circles = Arc::clone(&shared_circles);
+            let thread_ralgo_results = Arc::clone(&shared_ralgo_results);
 
-            let points = calculate_points(new_main_circle_radius, jury_answer);
+            let handle = thread::spawn(move || {
+                let circles = thread_circles.lock().unwrap();
+                let mut ralgo_results = thread_ralgo_results.lock().unwrap();
 
-            let ralgo_time = elapsed.as_secs_f32();
+                let start = Instant::now();
+                let (new_main_circle_radius, new_circles) =
+                    dichotomy_step_ralgo(main_circle_radius, &circles, reset_step, eps);
 
-            // fill in table packing result
+                let ralgo_time = start.elapsed().as_secs_f32();
+
+                let points = calculate_points(new_main_circle_radius, jury_answer);
+
+                ralgo_results.push((
+                    new_main_circle_radius,
+                    points,
+                    packing::is_valid_pack(new_main_circle_radius, &new_circles),
+                    ralgo_time,
+                ));
+            });
+
+            handles.push(handle);
+        }
+
+        for handle in handles {
+            handle.join().unwrap();
+        }
+
+        let ralgo_results = shared_ralgo_results.lock().unwrap();
+        for (index, (radius, points, is_valid, time)) in ralgo_results.iter().enumerate() {
             write_row_block(
                 worksheet,
                 row_number,
-                column_start,
-                new_main_circle_radius,
-                &new_circles,
-                points,
-                heuristic_time + ralgo_time,
+                (5 + index * 4) as u16,
+                *radius,
+                *is_valid,
+                *points,
+                *time,
                 &cell_format,
             );
         }
