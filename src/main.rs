@@ -151,7 +151,7 @@ fn main() {
         let mut handles = vec![];
 
         let shared_circles = Arc::new(Mutex::new(circles));
-        let shared_ralgo_results = Arc::new(Mutex::new(Vec::<(f32, f32, bool, f32)>::new()));
+        // let shared_ralgo_results = Arc::new(Mutex::new(Vec::<(f32, f32, bool, f32)>::new()));
 
         // run dichotomy ralgo with different parameters
         for (reset_step, _, eps) in [
@@ -161,45 +161,41 @@ fn main() {
             (true, 17, 1e-3),
         ] {
             let thread_circles = Arc::clone(&shared_circles);
-            let thread_ralgo_results = Arc::clone(&shared_ralgo_results);
+            // let thread_ralgo_results = Arc::clone(&shared_ralgo_results);
 
             let handle = thread::spawn(move || {
                 let circles = thread_circles.lock().unwrap();
-                let mut ralgo_results = thread_ralgo_results.lock().unwrap();
+                // let mut ralgo_results = thread_ralgo_results.lock().unwrap();
 
-                let start = Instant::now();
+                let start_1 = Instant::now();
                 let (new_main_circle_radius, new_circles) =
                     dichotomy_step_ralgo(main_circle_radius, &circles, reset_step, eps);
 
-                let ralgo_time = start.elapsed().as_secs_f32();
+                let ralgo_time = start_1.elapsed().as_secs_f32();
 
                 let points = calculate_points(new_main_circle_radius, jury_answer);
 
-                ralgo_results.push((
+                return (
                     new_main_circle_radius,
                     points,
                     packing::is_valid_pack(new_main_circle_radius, &new_circles),
                     ralgo_time,
-                ));
+                );
             });
 
             handles.push(handle);
         }
 
-        for handle in handles {
-            handle.join().unwrap();
-        }
-
-        let ralgo_results = shared_ralgo_results.lock().unwrap();
-        for (index, (radius, points, is_valid, time)) in ralgo_results.iter().enumerate() {
+        for (index, handle) in handles.into_iter().enumerate() {
+            let (radius, points, is_valid, time) = handle.join().unwrap();
             write_row_block(
                 worksheet,
                 row_number,
                 (5 + index * 4) as u16,
-                *radius,
-                *is_valid,
-                *points,
-                *time,
+                radius,
+                is_valid,
+                points,
+                time,
                 &cell_format,
             );
         }
@@ -224,5 +220,5 @@ fn main() {
 
     worksheet.autofit();
 
-    workbook.save("result.xlsx").ok();
+    workbook.save("result-multi.xlsx").ok();
 }

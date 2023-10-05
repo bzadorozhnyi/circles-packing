@@ -4,5 +4,6 @@ output
 .vscode
 circle.png
 result.xlsx
+result-multi.xlsx
 src/main.exe
 src/main.pdb
