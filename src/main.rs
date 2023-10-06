@@ -8,7 +8,6 @@ use packing::find_answer;
 use ralgo::dichotomy_step_ralgo;
 use rust_xlsxwriter::{Format, Formula, Workbook, Worksheet};
 
-use std::sync::{Arc, Mutex};
 use std::time::Instant;
 use std::{fs, thread};
 use std::{
@@ -151,23 +150,11 @@ fn main() {
 
         let mut handles = vec![];
 
-        // let shared_circles = Arc::new(Mutex::new(circles));
-
-        // run dichotomy ralgo with different parameters
-        for (reset_step, eps) in [
-            (false, 0.0),
-            (true, 0.0),
-            (false, 1e-3),
-            (true, 1e-3),
-        ] {
-            // let thread_circles = Arc::clone(&shared_circles);
-            // let thread_ralgo_results = Arc::clone(&shared_ralgo_results);
-
+        // run dichotomy ralgo with different parameters in threads
+        for (reset_step, eps) in [(false, 0.0), (true, 0.0), (false, 1e-3), (true, 1e-3)] {
             let copied_circles = circles.clone();
 
             let handle = thread::spawn(move || {
-                // let circles = thread_circles.lock().unwrap();
-
                 let start = Instant::now();
                 let (new_main_circle_radius, new_circles) =
                     dichotomy_step_ralgo(main_circle_radius, &copied_circles, reset_step, eps);
@@ -187,6 +174,7 @@ fn main() {
             handles.push(handle);
         }
 
+        // write results into table
         for (index, handle) in handles.into_iter().enumerate() {
             let (radius, points, is_valid, time) = handle.join().unwrap();
             write_row_block(
