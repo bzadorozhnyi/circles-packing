@@ -61,6 +61,7 @@ fn calculate_points(answer: f32, jury_answer: f32) -> f32 {
 }
 
 fn main() {
+    let total_time = Instant::now();
     let mut workbook: Workbook = Workbook::new();
     let worksheet = workbook.add_worksheet();
 
@@ -150,28 +151,28 @@ fn main() {
 
         let mut handles = vec![];
 
-        let shared_circles = Arc::new(Mutex::new(circles));
-        // let shared_ralgo_results = Arc::new(Mutex::new(Vec::<(f32, f32, bool, f32)>::new()));
+        // let shared_circles = Arc::new(Mutex::new(circles));
 
         // run dichotomy ralgo with different parameters
-        for (reset_step, _, eps) in [
-            (false, 5, 0.0),
-            (true, 9, 0.0),
-            (false, 13, 1e-3),
-            (true, 17, 1e-3),
+        for (reset_step, eps) in [
+            (false, 0.0),
+            (true, 0.0),
+            (false, 1e-3),
+            (true, 1e-3),
         ] {
-            let thread_circles = Arc::clone(&shared_circles);
+            // let thread_circles = Arc::clone(&shared_circles);
             // let thread_ralgo_results = Arc::clone(&shared_ralgo_results);
 
+            let copied_circles = circles.clone();
+
             let handle = thread::spawn(move || {
-                let circles = thread_circles.lock().unwrap();
-                // let mut ralgo_results = thread_ralgo_results.lock().unwrap();
+                // let circles = thread_circles.lock().unwrap();
 
-                let start_1 = Instant::now();
+                let start = Instant::now();
                 let (new_main_circle_radius, new_circles) =
-                    dichotomy_step_ralgo(main_circle_radius, &circles, reset_step, eps);
+                    dichotomy_step_ralgo(main_circle_radius, &copied_circles, reset_step, eps);
 
-                let ralgo_time = start_1.elapsed().as_secs_f32();
+                let ralgo_time = start.elapsed().as_secs_f32();
 
                 let points = calculate_points(new_main_circle_radius, jury_answer);
 
@@ -221,4 +222,6 @@ fn main() {
     worksheet.autofit();
 
     workbook.save("result-multi.xlsx").ok();
+
+    println!("Total time = {}", total_time.elapsed().as_secs_f32());
 }
