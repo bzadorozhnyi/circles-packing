@@ -6,7 +6,7 @@ mod ralgo;
 
 use packing::find_answer;
 use ralgo::dichotomy_step_ralgo;
-use rust_xlsxwriter::{Format, Formula, Workbook, Worksheet};
+use rust_xlsxwriter::{Format, Formula, Workbook, Worksheet, column_number_to_name};
 
 use std::time::Instant;
 use std::{fs, thread};
@@ -59,6 +59,24 @@ fn calculate_points(answer: f32, jury_answer: f32) -> f32 {
     ((2.0 - (answer / jury_answer)) * 100.0).max(0.0).round()
 }
 
+fn get_table_headings(params: &[(bool, f32); 8]) -> Vec<String> {
+    let mut headings: Vec<String> = vec![
+        "Test".to_string(),
+        "R".to_string(),
+        "Points".to_string(),
+        "Is valid?".to_string(),
+        "Time".to_string(),
+    ];
+    for (reset, eps) in params {
+        let reset_str = if *reset { "P" } else { "B" };
+        for i in 1..5 {
+            headings.push(format!("{} {} EPS={}", &headings[i], reset_str, eps));
+        }
+    }
+
+    return headings;
+}
+
 fn main() {
     let total_time = Instant::now();
     let mut workbook: Workbook = Workbook::new();
@@ -66,35 +84,21 @@ fn main() {
 
     let cell_format = Format::new().set_align(rust_xlsxwriter::FormatAlign::Center);
 
+    let ralgo_params = [
+        (false, 0.0_f32),
+        (true, 0.0),
+        (false, 1e-1),
+        (true, 1e-1),
+        (false, 1e-2),
+        (true, 1e-2),
+        (false, 1e-3),
+        (true, 1e-3),
+    ];
+
     // setup headings
-    for (column, data) in [
-        "Test",
-        "R",
-        "Points",
-        "Is valid?",
-        "Time",
-        "R (ralgo)",
-        "Points (ralgo)",
-        "Is valid? (ralgo)",
-        "Time (ralgo)",
-        "R (ralgo) (2)",
-        "Points (ralgo) (2)",
-        "Is valid? (ralgo) (2)",
-        "Time (ralgo) (2)",
-        "R (ralgo) (3)",
-        "Points (ralgo) (3)",
-        "Is valid? (ralgo) (3)",
-        "Time (ralgo) (3)",
-        "R (ralgo) (4)",
-        "Points (ralgo) (4)",
-        "Is valid? (ralgo) (4)",
-        "Time (ralgo) (4)",
-    ]
-    .iter()
-    .enumerate()
-    {
+    for (column, data) in get_table_headings(&ralgo_params).iter().enumerate() {
         worksheet
-            .write_with_format(0, column as u16, *data, &cell_format)
+            .write_with_format(0, column as u16, data, &cell_format)
             .ok();
     }
 
@@ -151,7 +155,7 @@ fn main() {
         let mut handles = vec![];
 
         // run dichotomy ralgo with different parameters in threads
-        for (reset_step, eps) in [(false, 0.0), (true, 0.0), (false, 1e-3), (true, 1e-3)] {
+        for (reset_step, eps) in ralgo_params {
             let copied_circles = circles.clone();
 
             let handle = thread::spawn(move || {
@@ -190,21 +194,18 @@ fn main() {
         }
     }
 
-    // calculate sum of points by heuristic packing (col=3),  total time (col=5),
-    // sum of points by dichotomy step Ralgo        (col=7),  total time (col=9)
-    // sum of points by dichotomy step Ralgo (2)    (col=11), total time (col=13)
-    // sum of points by dichotomy step Ralgo (3)    (col=15), total time (col=17)
-    // sum of points by dichotomy step Ralgo (4)    (col=19), total time (col=21)
-    for col in [3, 5, 7, 9, 11, 13, 15, 17, 19, 21] {
-        let column: char = (col + 64_u8) as char;
+    let mut col: u16 = 2;
+    while col < (ralgo_params.len() * 4 + 5) as u16 { // number of columns 
+        let column: String = column_number_to_name(col);
         worksheet
             .write_with_format(
                 51,
-                (col - 1) as u16,
+                col,
                 Formula::new(format!("=SUM({column}2:{column}51)")),
                 &cell_format,
             )
             .ok();
+        col += 2;
     }
 
     worksheet.autofit();

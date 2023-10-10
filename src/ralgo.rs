@@ -205,7 +205,17 @@ pub fn dichotomy_step_ralgo(
             &circles_radiuses,
         );
 
-        if get_last(&y) + eps < get_last(&x) {
+        // if get_last(&y) + eps < get_last(&x) {
+        //     x = y;
+        //     if reset_step {
+        //         step_size = 40.96;
+        //     }
+        // }
+        // else {
+        //     step_size /= 2.0;
+        // }
+
+        if (get_last(&x) - get_last(&y)) / get_last(&x) > eps {
             x = y;
             if reset_step {
                 step_size = 40.96;

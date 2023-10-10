@@ -3,7 +3,6 @@ input
 output
 .vscode
 circle.png
-result.xlsx
-result-multi.xlsx
+*.xlsx
 src/main.exe
 src/main.pdb
