@@ -7,16 +7,16 @@ fn concat_gradients(
     gy: &nalgebra::DVector<f32>,
     gr: f32,
 ) -> nalgebra::DVector<f32> {
-    let mut result_data = Vec::<f32>::with_capacity(2 * gx.len() + 1);
-    for vector in [gx, gy] {
-        for element in vector {
-            result_data.push(*element);
-        }
-    }
+    let circles_number = gx.len();
 
-    result_data.push(gr);
+    let mut gradient = nalgebra::DVector::<f32>::zeros(2 * circles_number + 1);
+    gradient.rows_mut(0, circles_number).copy_from(&gx);
+    gradient
+        .rows_mut(circles_number, circles_number)
+        .copy_from(&gy);
+    gradient[2 * circles_number] = gr;
 
-    return nalgebra::DVector::<f32>::from_vec(result_data);
+    return gradient;
 }
 
 fn calcfg(
@@ -186,7 +186,7 @@ pub fn dichotomy_step_ralgo(
     main_circle_radiuse: f32,
     circles: &Vec<circle::Circle>,
     reset_step: bool,
-    eps: f32
+    eps: f32,
 ) -> (f32, Vec<circle::Circle>) {
     let mut x = circles_to_dvector(circles, main_circle_radiuse);
     let circles_radiuses =
@@ -205,23 +205,12 @@ pub fn dichotomy_step_ralgo(
             &circles_radiuses,
         );
 
-        // if get_last(&y) + eps < get_last(&x) {
-        //     x = y;
-        //     if reset_step {
-        //         step_size = 40.96;
-        //     }
-        // }
-        // else {
-        //     step_size /= 2.0;
-        // }
-
         if (get_last(&x) - get_last(&y)) / get_last(&x) > eps {
             x = y;
             if reset_step {
                 step_size = 40.96;
             }
-        }
-        else {
+        } else {
             step_size /= 2.0;
         }
     }

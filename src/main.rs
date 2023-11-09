@@ -59,7 +59,7 @@ fn calculate_points(answer: f32, jury_answer: f32) -> f32 {
     ((2.0 - (answer / jury_answer)) * 100.0).max(0.0).round()
 }
 
-fn get_table_headings(params: &[(bool, f32); 8]) -> Vec<String> {
+fn get_table_headings(params: &[(bool, f32)]) -> Vec<String> {
     let mut headings: Vec<String> = vec![
         "Test".to_string(),
         "R".to_string(),
@@ -85,14 +85,16 @@ fn main() {
     let cell_format = Format::new().set_align(rust_xlsxwriter::FormatAlign::Center);
 
     let ralgo_params = [
-        (false, 0.0_f32),
-        (true, 0.0),
-        (false, 1e-1),
-        (true, 1e-1),
         (false, 1e-2),
         (true, 1e-2),
         (false, 1e-3),
         (true, 1e-3),
+        (false, 1e-4),
+        (true, 1e-4),
+        (false, 1e-5),
+        (true, 1e-5),
+        (false, 0.0),
+        (true, 0.0),
     ];
 
     // setup headings
