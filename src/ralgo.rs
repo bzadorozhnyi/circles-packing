@@ -38,7 +38,24 @@ fn calcfg(
     const P2: f32 = 1000.0;
     const EPS: f32 = 0.05;
 
-    for i in 0..number_of_circles {
+    let mut temp = cy[0].powi(2) - (main_circle_radius - radiuses[0]).powi(2) + EPS;
+    if temp > 0.0 {
+        f += P1 * temp;
+        gy[0] += P1 * cy[0];
+        gr -= P2;
+    }
+
+    for j in 1..number_of_circles {
+        temp =
+            -(cx[j]).powi(2) - (cy[0] - cy[j]).powi(2) + (radiuses[0] + radiuses[j]).powi(2) + EPS;
+        if temp > 0.0 {
+            f += P1 * temp;
+            gy[0] -= P1 * (cy[0] - cy[j]);
+            gy[j] += P1 * (cy[0] - cy[j]);
+        }
+    }
+
+    for i in 1..number_of_circles {
         let mut temp =
             cx[i].powi(2) + cy[i].powi(2) - (main_circle_radius - radiuses[i]).powi(2) + EPS;
         if temp > 0.0 {

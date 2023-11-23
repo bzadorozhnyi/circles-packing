@@ -212,7 +212,7 @@ fn main() {
 
     worksheet.autofit();
 
-    workbook.save("result-multi.xlsx").ok();
+    workbook.save("result-multi-x=0.xlsx").ok();
 
     println!("Total time = {}", total_time.elapsed().as_secs_f32());
 }
