@@ -8,8 +8,8 @@ use packing::find_answer;
 use ralgo::dichotomy_step_ralgo;
 use rust_xlsxwriter::{Format, Formula, Workbook, Worksheet};
 
-use std::fs;
 use std::time::Instant;
+use std::{fs, io};
 use std::{
     fs::File,
     io::{BufRead, BufReader},
@@ -64,7 +64,7 @@ fn calculate_points(answer: f32, jury_answer: f32) -> f32 {
     ((2.0 - (answer / jury_answer)) * 100.0).max(0.0).round()
 }
 
-fn main() {
+fn main() -> io::Result<()> {
     let mut workbook = Workbook::new();
     let worksheet = workbook.add_worksheet();
 
@@ -102,12 +102,16 @@ fn main() {
             .ok();
     }
 
-    let paths: fs::ReadDir = fs::read_dir("./input/").unwrap();
+    let mut sorted_paths = fs::read_dir("./input/")?
+        .map(|res| res.map(|e| e.path()))
+        .collect::<Result<Vec<_>, io::Error>>()?;
 
-    for (row, path) in paths.enumerate() {
+    sorted_paths.sort();
+
+    for (row, path) in sorted_paths.into_iter().enumerate() {
         println!("Test {}", row + 1);
 
-        let file_name = path.unwrap().path().display().to_string();
+        let file_name = path.display().to_string();
         let input_file = File::open(file_name).expect("Failed to open file");
 
         let reader = BufReader::new(input_file);
@@ -153,7 +157,7 @@ fn main() {
             &cell_format,
         );
 
-        // run dichotomy ralgo with different parameters 
+        // run dichotomy ralgo with different parameters
         for (reset_step, column_start, eps) in [
             (false, 5, 0.0),
             (true, 9, 0.0),
@@ -203,4 +207,6 @@ fn main() {
     worksheet.autofit();
 
     workbook.save("result.xlsx").ok();
+
+    Ok(())
 }
