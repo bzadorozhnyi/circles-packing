@@ -9,7 +9,7 @@ use ralgo::dichotomy_step_ralgo;
 use rust_xlsxwriter::{Format, Formula, Workbook, Worksheet, column_number_to_name};
 
 use std::time::Instant;
-use std::{fs, thread};
+use std::{fs, thread, io};
 use std::{
     fs::File,
     io::{BufRead, BufReader},
@@ -77,7 +77,7 @@ fn get_table_headings(params: &[(bool, f32)]) -> Vec<String> {
     return headings;
 }
 
-fn main() {
+fn main() -> Result<(), io::Error>{
     let total_time = Instant::now();
     let mut workbook: Workbook = Workbook::new();
     let worksheet = workbook.add_worksheet();
@@ -87,12 +87,12 @@ fn main() {
     let ralgo_params = [
         (false, 1e-2),
         (true, 1e-2),
-        (false, 1e-3),
-        (true, 1e-3),
-        (false, 1e-4),
-        (true, 1e-4),
-        (false, 1e-5),
-        (true, 1e-5),
+        // (false, 1e-3),
+        // (true, 1e-3),
+        // (false, 1e-4),
+        // (true, 1e-4),
+        // (false, 1e-5),
+        // (true, 1e-5),
         (false, 0.0),
         (true, 0.0),
     ];
@@ -104,12 +104,18 @@ fn main() {
             .ok();
     }
 
-    let paths: fs::ReadDir = fs::read_dir("./input/").unwrap();
+    let mut sorted_paths = fs::read_dir("./input/")?
+        .map(|res| res.map(|e| e.path()))
+        .collect::<Result<Vec<_>, io::Error>>()?;
 
-    for (row, path) in paths.enumerate() {
+    sorted_paths.sort();
+    
+    for (row, path) in sorted_paths.into_iter().enumerate() {
         println!("Test {}", row + 1);
 
-        let file_name = path.unwrap().path().display().to_string();
+        let file_name = path.display().to_string();
+        println!("filename = {file_name}");
+
         let input_file = File::open(file_name).expect("Failed to open file");
 
         let reader = BufReader::new(input_file);
@@ -212,7 +218,9 @@ fn main() {
 
     worksheet.autofit();
 
-    workbook.save("result-multi-x=0.xlsx").ok();
+    workbook.save("result-multi-linux.xlsx").ok();
 
     println!("Total time = {}", total_time.elapsed().as_secs_f32());
+
+    Ok(())
 }
