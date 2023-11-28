@@ -6,10 +6,11 @@ mod ralgo;
 
 use packing::find_answer;
 use ralgo::dichotomy_step_ralgo;
-use rust_xlsxwriter::{Format, Formula, Workbook, Worksheet, column_number_to_name};
+use rust_xlsxwriter::{column_number_to_name, Format, Formula, Workbook, Worksheet};
 
+use std::ops::Div;
 use std::time::Instant;
-use std::{fs, thread, io};
+use std::{fs, io, thread};
 use std::{
     fs::File,
     io::{BufRead, BufReader},
@@ -77,7 +78,7 @@ fn get_table_headings(params: &[(bool, f32)]) -> Vec<String> {
     return headings;
 }
 
-fn main() -> Result<(), io::Error>{
+fn main() -> io::Result<()> {
     let total_time = Instant::now();
     let mut workbook: Workbook = Workbook::new();
     let worksheet = workbook.add_worksheet();
@@ -87,12 +88,12 @@ fn main() -> Result<(), io::Error>{
     let ralgo_params = [
         (false, 1e-2),
         (true, 1e-2),
-        // (false, 1e-3),
-        // (true, 1e-3),
-        // (false, 1e-4),
-        // (true, 1e-4),
-        // (false, 1e-5),
-        // (true, 1e-5),
+        (false, 1e-3),
+        (true, 1e-3),
+        (false, 1e-4),
+        (true, 1e-4),
+        (false, 1e-5),
+        (true, 1e-5),
         (false, 0.0),
         (true, 0.0),
     ];
@@ -109,7 +110,7 @@ fn main() -> Result<(), io::Error>{
         .collect::<Result<Vec<_>, io::Error>>()?;
 
     sorted_paths.sort();
-    
+
     for (row, path) in sorted_paths.into_iter().enumerate() {
         println!("Test {}", row + 1);
 
@@ -138,7 +139,8 @@ fn main() -> Result<(), io::Error>{
 
         // heuristic packing
         let start = Instant::now();
-        let (main_circle_radius, circles) = find_answer(&mut radiuses, 100);
+        let (main_circle_radius, circles) =
+            find_answer(&mut radiuses, 60000.div(n).try_into().unwrap());
         let heuristic_time = start.elapsed().as_secs_f32();
 
         // get jury answer of current test
@@ -203,7 +205,8 @@ fn main() -> Result<(), io::Error>{
     }
 
     let mut col: u16 = 2;
-    while col < (ralgo_params.len() * 4 + 5) as u16 { // number of columns 
+    while col < (ralgo_params.len() * 4 + 5) as u16 {
+        // number of columns
         let column: String = column_number_to_name(col);
         worksheet
             .write_with_format(
