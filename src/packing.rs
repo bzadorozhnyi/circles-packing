@@ -109,8 +109,7 @@ fn closest_center_to_two_touching_circles(
 }
 
 fn extra_angle(r1: f32, r2: f32, main_circle_radius: f32) -> f32 {
-    return (r1 / (main_circle_radius - r1)).atan()
-        + (r2 / (main_circle_radius - r2)).atan();
+    return (r1 / (main_circle_radius - r1)).atan() + (r2 / (main_circle_radius - r2)).atan();
 }
 
 fn pack_circles(radiuses: &Vec<f32>, main_circle_radius: f32) -> Option<Vec<Circle>> {
@@ -167,7 +166,7 @@ fn pack_circles(radiuses: &Vec<f32>, main_circle_radius: f32) -> Option<Vec<Circ
     }
 
     for index in &order_of_circles_placement {
-        for i in 0..circles.len() {
+        'circles_loop: for i in 0..circles.len() {
             if circles[i].center.is_some() {
                 continue;
             }
@@ -185,13 +184,9 @@ fn pack_circles(radiuses: &Vec<f32>, main_circle_radius: f32) -> Option<Vec<Circ
                         && !new_circle.is_overlap(&circles)
                     {
                         circles[i] = new_circle;
-                        break;
+                        break 'circles_loop;
                     }
                 }
-            }
-
-            if circles[i].center.is_some() {
-                break;
             }
         }
     }
@@ -199,7 +194,7 @@ fn pack_circles(radiuses: &Vec<f32>, main_circle_radius: f32) -> Option<Vec<Circ
     while !order_of_circles_placement.is_empty() {
         let mut new_order_of_circles_placement: Vec<usize> = Vec::new();
         for index in 0..order_of_circles_placement.len() {
-            for i in 0..circles.len() {
+            'circles_loop: for i in 0..circles.len() {
                 if circles[i].center.is_some() {
                     continue;
                 }
@@ -227,32 +222,27 @@ fn pack_circles(radiuses: &Vec<f32>, main_circle_radius: f32) -> Option<Vec<Circ
                     {
                         circles[i] = new_circle;
                         new_order_of_circles_placement.push(i);
-                        break;
+                        break 'circles_loop;
                     }
-                }
-
-                if circles[i].center.is_some() {
-                    break;
                 }
             }
         }
         order_of_circles_placement = new_order_of_circles_placement;
     }
 
-    for circle in &circles {
-        if circle.center.is_none() {
-            return None;
-        }
+    if circles.iter().any(|circle| circle.center.is_none()) {
+        return None;
     }
 
     return Some(circles);
 }
 
 pub fn is_valid_pack(main_circle_radius: f32, circles: &Vec<Circle>) -> bool {
-    for circle in circles {
-        if !circle.is_inside_main_circle(main_circle_radius) {
-            return false;
-        }
+    if circles
+        .iter()
+        .any(|circle| !circle.is_inside_main_circle(main_circle_radius))
+    {
+        return false;
     }
 
     for i in 0..circles.len() {
