@@ -1,4 +1,4 @@
-use crate::utils::measure_time;
+use crate::{calc_all_cases::calc_all_cases, rng_task::random_task, utils::measure_time};
 
 mod calc_all_cases;
 mod circle;
@@ -6,6 +6,7 @@ mod packing;
 mod plot;
 mod point;
 mod ralgo;
+mod rng_task;
 mod utils;
 
 fn main() {
@@ -22,7 +23,9 @@ fn main() {
         (true, 0.0),
     ];
 
-    let (total_time, _) = measure_time(|| calc_all_cases::calc_all_cases(&ralgo_params));
+    let (total_time_of_random, _) = measure_time(|| random_task(&ralgo_params));
+    println!("Total time (random): {}", total_time_of_random);
 
-    println!("Total time = {}", total_time);
+    let (total_time_of_heuristic, _) = measure_time(|| calc_all_cases(&ralgo_params));
+    println!("Total time (heuristic): {}", total_time_of_heuristic);
 }

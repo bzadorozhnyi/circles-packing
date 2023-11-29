@@ -108,11 +108,7 @@ fn closest_center_to_two_touching_circles(
     }
 }
 
-// fn bad_angle(c1: &Circle, c2: &Circle, main_circle_radius: f32) -> f32 {
-//     return (c1.radius / (main_circle_radius - c1.radius)).atan()
-//         + (c2.radius / (main_circle_radius - c2.radius)).atan();
-// }
-fn bad_angle(r1: f32, r2: f32, main_circle_radius: f32) -> f32 {
+fn extra_angle(r1: f32, r2: f32, main_circle_radius: f32) -> f32 {
     return (r1 / (main_circle_radius - r1)).atan()
         + (r2 / (main_circle_radius - r2)).atan();
 }
@@ -137,8 +133,7 @@ fn pack_circles(radiuses: &Vec<f32>, main_circle_radius: f32) -> Option<Vec<Circ
 
         let (mut left, mut right, mut angle_for_new_circle) = (
             0_f32,
-            // 360_f32 - bad_angle(&circles[0], &circles[index], main_circle_radius),
-            360_f32 - bad_angle(circles[0].radius, circles[index].radius, main_circle_radius),
+            360_f32 - extra_angle(circles[0].radius, circles[index].radius, main_circle_radius),
             -1_f32,
         );
         for _ in 0..50 {
