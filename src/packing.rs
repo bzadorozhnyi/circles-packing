@@ -115,7 +115,7 @@ fn extra_angle(r1: f32, r2: f32, main_circle_radius: f32) -> f32 {
 fn pack_circles(radiuses: &Vec<f32>, main_circle_radius: f32) -> Option<Vec<Circle>> {
     let mut circles: Vec<Circle> = radiuses
         .iter()
-        .map(|&radius| Circle::new_with_radius(radius))
+        .map(|&radius| Circle::with_radius(radius))
         .collect();
 
     circles[0].center = Some(Point {

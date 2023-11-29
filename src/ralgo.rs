@@ -165,7 +165,7 @@ fn dvector_to_answer(
     let mut circles: Vec<circle::Circle> = Vec::from_iter(
         circles_radiuses
             .iter()
-            .map(|radius| circle::Circle::new_with_radius(*radius)),
+            .map(|radius| circle::Circle::with_radius(*radius)),
     );
 
     for i in 0..x.len() / 2 {

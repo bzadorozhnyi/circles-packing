@@ -1,8 +1,8 @@
-use crate::point::{self, Point};
+use crate::point::Point;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Circle {
-    pub center: Option<point::Point>,
+    pub center: Option<Point>,
     pub radius: f32,
 }
 
@@ -21,7 +21,7 @@ impl Circle {
         }
     }
 
-    pub fn new_with_radius(radius: f32) -> Self {
+    pub fn with_radius(radius: f32) -> Self {
         Circle {
             center: None,
             radius,
