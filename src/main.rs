@@ -23,7 +23,7 @@ fn main() {
         (true, 0.0),
     ];
 
-    let (total_time_of_random, _) = measure_time(|| random_task(&ralgo_params));
+    let (total_time_of_random, _) = measure_time(|| random_task(&ralgo_params, 0.7403));
     println!("Total time (random): {}", total_time_of_random);
 
     let (total_time_of_heuristic, _) = measure_time(|| calc_all_cases(&ralgo_params));

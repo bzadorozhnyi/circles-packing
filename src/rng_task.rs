@@ -76,24 +76,19 @@ fn calculate_points(answer: f32, jury_answer: f32) -> f32 {
 }
 
 fn get_table_headings(params: &[(bool, f32)]) -> Vec<String> {
-    let mut headings: Vec<String> = vec![
-        "Test".to_string(),
-        "R".to_string(),
-        "Points".to_string(),
-        "Is valid?".to_string(),
-        "Time".to_string(),
-    ];
+    let mut headings: Vec<String> = vec!["Test".to_string()];
+    let heading_names = ["R", "Points", "Is valid?", "Time"];
     for (reset, eps) in params {
         let reset_str = if *reset { "P" } else { "B" };
-        for i in 1..5 {
-            headings.push(format!("{} {} EPS={}", &headings[i], reset_str, eps));
+        for i in 0..4 {
+            headings.push(format!("{} {} EPS={}", &heading_names[i], reset_str, eps));
         }
     }
 
     return headings;
 }
 
-pub fn random_task(ralgo_params: &[(bool, f32)]) -> io::Result<()> {
+pub fn random_task(ralgo_params: &[(bool, f32)], density: f32) -> io::Result<()> {
     let mut rng = StdRng::seed_from_u64(0);
 
     let mut workbook: Workbook = Workbook::new();
@@ -128,6 +123,10 @@ pub fn random_task(ralgo_params: &[(bool, f32)]) -> io::Result<()> {
         let reader = BufReader::new(input_file);
         let (_, radiuses) = get_input_data(reader);
 
+        // generate start values
+        let main_circle_radius: f32 =
+            (radiuses.iter().map(|r| r.powi(2)).sum::<f32>() / density).sqrt();
+
         let mut circles = vec![];
         for i in 0..radiuses.len() {
             circles.push(Circle::new(
@@ -139,7 +138,7 @@ pub fn random_task(ralgo_params: &[(bool, f32)]) -> io::Result<()> {
             ))
         }
 
-        let main_circle_radius: f32 = radiuses.iter().sum();
+        let main_circle_radius = main_circle_radius * 10.0;
 
         // get jury answer of current test
         let jury_answer = get_jury_answer(row_number);
@@ -201,7 +200,9 @@ pub fn random_task(ralgo_params: &[(bool, f32)]) -> io::Result<()> {
 
     worksheet.autofit();
 
-    workbook.save("random-result-multi.xlsx").ok();
+    workbook
+        .save(format!("random-result-multi (density = {density:.5}).xlsx"))
+        .ok();
 
     Ok(())
 }
