@@ -123,13 +123,9 @@ fn pack_circles(radiuses: &Vec<f32>, main_circle_radius: f32) -> Option<Vec<Circ
         y: main_circle_radius - circles[0].radius,
     });
 
-    let mut order_of_circles_placement: Vec<usize> = vec![0];
+    let mut level_of_placed_circle_indices: Vec<usize> = vec![0];
 
-    for index in 0..circles.len() {
-        if circles[index].center.is_some() {
-            continue;
-        }
-
+    for index in 1..circles.len() {
         let (mut left, mut right, mut angle_for_new_circle) = (
             0_f32,
             360_f32 - extra_angle(circles[0].radius, circles[index].radius, main_circle_radius),
@@ -161,19 +157,21 @@ fn pack_circles(radiuses: &Vec<f32>, main_circle_radius: f32) -> Option<Vec<Circ
                     angle_for_new_circle,
                 )),
             };
-            order_of_circles_placement.push(index);
+            level_of_placed_circle_indices.push(index);
         }
     }
 
-    for index in &order_of_circles_placement {
+    for placed_circle_index in &level_of_placed_circle_indices {
         'circles_loop: for i in 0..circles.len() {
             if circles[i].center.is_some() {
                 continue;
             }
 
-            if let Some(points) =
-                center_of_small_circle_touch_main(&circles[*index], &circles[i], main_circle_radius)
-            {
+            if let Some(points) = center_of_small_circle_touch_main(
+                &circles[*placed_circle_index],
+                &circles[i],
+                main_circle_radius,
+            ) {
                 for point in [points.0, points.1] {
                     let new_circle: Circle = Circle {
                         radius: circles[i].radius,
@@ -191,20 +189,20 @@ fn pack_circles(radiuses: &Vec<f32>, main_circle_radius: f32) -> Option<Vec<Circ
         }
     }
 
-    while !order_of_circles_placement.is_empty() {
-        let mut new_order_of_circles_placement: Vec<usize> = Vec::new();
-        for index in 0..order_of_circles_placement.len() {
+    while !level_of_placed_circle_indices.is_empty() {
+        let mut new_level_of_placed_circle_indices: Vec<usize> = Vec::new();
+        for placed_circle_index in 0..level_of_placed_circle_indices.len() {
             'circles_loop: for i in 0..circles.len() {
                 if circles[i].center.is_some() {
                     continue;
                 }
 
-                for j in 1..=min(2_usize, order_of_circles_placement.len()) {
+                for shift in 1..=min(2_usize, level_of_placed_circle_indices.len()) {
                     let new_circle_center: Option<Point> = closest_center_to_two_touching_circles(
                         Point::empty(),
-                        &circles[order_of_circles_placement[index]],
-                        &circles[order_of_circles_placement
-                            [(index + j) % order_of_circles_placement.len()]],
+                        &circles[level_of_placed_circle_indices[placed_circle_index]],
+                        &circles[level_of_placed_circle_indices
+                            [(placed_circle_index + shift) % level_of_placed_circle_indices.len()]],
                         &circles[i],
                     );
 
@@ -221,20 +219,20 @@ fn pack_circles(radiuses: &Vec<f32>, main_circle_radius: f32) -> Option<Vec<Circ
                         && !new_circle.is_overlap(&circles)
                     {
                         circles[i] = new_circle;
-                        new_order_of_circles_placement.push(i);
+                        new_level_of_placed_circle_indices.push(i);
                         break 'circles_loop;
                     }
                 }
             }
         }
-        order_of_circles_placement = new_order_of_circles_placement;
+        level_of_placed_circle_indices = new_level_of_placed_circle_indices;
     }
 
     if circles.iter().any(|circle| circle.center.is_none()) {
         return None;
     }
 
-    return Some(circles);
+    Some(circles)
 }
 
 pub fn is_valid_pack(main_circle_radius: f32, circles: &Vec<Circle>) -> bool {
