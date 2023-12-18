@@ -88,6 +88,68 @@ fn get_table_headings(params: &[(bool, f32)]) -> Vec<String> {
     return headings;
 }
 
+fn generate_random_arrangement(
+    main_circle_radius: f32,
+    rng: &mut StdRng,
+    radiuses: &Vec<f32>,
+) -> (Vec<Circle>, f32) {
+    let mut circles = vec![];
+    for i in 0..radiuses.len() {
+        circles.push(Circle::new(
+            radiuses[i],
+            Point {
+                x: rng.gen_range(-main_circle_radius..=main_circle_radius),
+                y: rng.gen_range(-main_circle_radius..=main_circle_radius),
+            },
+        ))
+    }
+
+    let mut r = circles
+        .iter()
+        .map(|c| {
+            let center = c.center.unwrap();
+            main_circle_radius - (center.x.powi(2) + center.y.powi(2)).sqrt()
+        })
+        .min_by(|x, y| x.partial_cmp(y).unwrap())
+        .unwrap();
+
+    for i in 0..circles.len() {
+        let center_i = circles[i].center.unwrap();
+
+        for j in (i + 1)..circles.len() {
+            let center_j = circles[j].center.unwrap();
+
+            r = r.min(
+                (center_i.x - center_j.x).powi(2)
+                    + (center_i.y.powi(2) - center_j.y.powi(2)).sqrt() / 2.0,
+            );
+        }
+    }
+
+    return (circles, r);
+}
+
+fn get_optimal_random_arrangement(
+    rng: &mut StdRng,
+    launches_number: usize,
+    main_circle_radius: f32,
+    radiuses: &Vec<f32>,
+) -> Vec<Circle> {
+    let max_radius = *(radiuses.iter().max_by(|x, y| x.partial_cmp(y).unwrap()).unwrap());
+
+    let (mut optimal_circles, mut r) = generate_random_arrangement(main_circle_radius, rng, radiuses);
+
+    for _ in 0..launches_number {
+        let (new_circles, new_r) = generate_random_arrangement(main_circle_radius, rng, radiuses);
+
+        if new_r > max_radius && new_r > r {
+            (optimal_circles, r) = (new_circles, new_r);
+        }
+    }
+
+    return optimal_circles;
+}
+
 pub fn random_task(ralgo_params: &[(bool, f32)], density: f32) -> io::Result<()> {
     let mut rng = StdRng::seed_from_u64(0);
 
@@ -127,16 +189,7 @@ pub fn random_task(ralgo_params: &[(bool, f32)], density: f32) -> io::Result<()>
         let main_circle_radius: f32 =
             (radiuses.iter().map(|r| r.powi(2)).sum::<f32>() / density).sqrt();
 
-        let mut circles = vec![];
-        for i in 0..radiuses.len() {
-            circles.push(Circle::new(
-                radiuses[i],
-                Point {
-                    x: rng.gen_range(-800.0..800.0),
-                    y: rng.gen_range(-800.0..800.0),
-                },
-            ))
-        }
+        let circles = get_optimal_random_arrangement(&mut rng, 700, main_circle_radius, &radiuses);
 
         let main_circle_radius = main_circle_radius * 10.0;
 
