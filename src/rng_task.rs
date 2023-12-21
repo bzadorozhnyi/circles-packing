@@ -142,7 +142,7 @@ fn get_optimal_random_arrangement(
     for _ in 0..launches_number {
         let (new_circles, new_r) = generate_random_arrangement(main_circle_radius, rng, radiuses);
 
-        if new_r > max_radius && new_r > r {
+        if new_r >= max_radius && new_r >= r {
             (optimal_circles, r) = (new_circles, new_r);
         }
     }
