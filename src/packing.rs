@@ -141,11 +141,12 @@ fn pack_circles(radiuses: &Vec<f32>, main_circle_radius: f32) -> Option<Vec<Circ
                 radius: circles[index].radius,
             };
 
-            if !new_circle.is_overlap(&circles) {
-                right = angle;
-                angle_for_new_circle = angle;
-            } else {
-                left = angle;
+            match !new_circle.is_overlap(&circles) {
+                true => {
+                    right = angle;
+                    angle_for_new_circle = angle;
+                }
+                false => left = angle,
             }
         }
 
