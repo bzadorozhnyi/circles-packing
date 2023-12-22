@@ -131,7 +131,7 @@ fn pack_circles(radiuses: &Vec<f32>, main_circle_radius: f32) -> Option<Vec<Circ
             360_f32 - extra_angle(circles[0].radius, circles[index].radius, main_circle_radius),
             -1_f32,
         );
-        for _ in 0..50 {
+        while (right - left) >= 1e-4 {
             let angle = (left + right) / 2.0;
             let new_circle: Circle = Circle {
                 center: Some(get_rotated_point(
@@ -190,6 +190,8 @@ fn pack_circles(radiuses: &Vec<f32>, main_circle_radius: f32) -> Option<Vec<Circ
         }
     }
 
+    let cycle_index = |vector: &Vec<usize>, index: usize| -> usize { vector[index % vector.len()] };
+
     while !level_of_placed_circle_indices.is_empty() {
         let mut new_level_of_placed_circle_indices: Vec<usize> = Vec::new();
         for placed_circle_index in 0..level_of_placed_circle_indices.len() {
@@ -201,9 +203,11 @@ fn pack_circles(radiuses: &Vec<f32>, main_circle_radius: f32) -> Option<Vec<Circ
                 for shift in 1..=min(2_usize, level_of_placed_circle_indices.len()) {
                     let new_circle_center: Option<Point> = closest_center_to_two_touching_circles(
                         Point::empty(),
-                        &circles[level_of_placed_circle_indices[placed_circle_index]],
-                        &circles[level_of_placed_circle_indices
-                            [(placed_circle_index + shift) % level_of_placed_circle_indices.len()]],
+                        &circles[cycle_index(&level_of_placed_circle_indices, placed_circle_index)],
+                        &circles[cycle_index(
+                            &level_of_placed_circle_indices,
+                            placed_circle_index + shift,
+                        )],
                         &circles[i],
                     );
 
