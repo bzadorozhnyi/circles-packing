@@ -8,7 +8,6 @@ use crate::circle::*;
 use crate::point::Point;
 
 fn get_rotated_point(y_coord: f32, angle: f32) -> Point {
-    let angle = angle.to_radians();
     return Point {
         x: y_coord * angle.sin(),
         y: y_coord * angle.cos(),
@@ -109,7 +108,7 @@ fn closest_center_to_two_touching_circles(
 }
 
 fn extra_angle(r1: f32, r2: f32, main_circle_radius: f32) -> f32 {
-    return (r1 / (main_circle_radius - r1)).atan() + (r2 / (main_circle_radius - r2)).atan();
+    return (r1 / (main_circle_radius - r1)).asin() + (r2 / (main_circle_radius - r2)).asin();
 }
 
 fn pack_circles(radiuses: &Vec<f32>, main_circle_radius: f32) -> Option<Vec<Circle>> {
@@ -124,16 +123,23 @@ fn pack_circles(radiuses: &Vec<f32>, main_circle_radius: f32) -> Option<Vec<Circ
     });
 
     let mut level_of_placed_circle_indices: Vec<usize> = vec![0];
+    let mut prev_circle_angle: f32 = 0.0;
 
     for index in 1..circles.len() {
-        let (mut left, mut right, mut angle_for_new_circle) = (
-            0_f32,
-            360_f32 - extra_angle(circles[0].radius, circles[index].radius, main_circle_radius),
-            -1_f32,
-        );
+        let approximate_angle = prev_circle_angle
+            + extra_angle(
+                circles[level_of_placed_circle_indices[level_of_placed_circle_indices.len() - 1]]
+                    .radius,
+                circles[index].radius,
+                main_circle_radius,
+            );
+
+        let (mut left, mut right) = (0.99 * approximate_angle, 1.01 * approximate_angle);
+        let mut new_circle_angle = -1.0;
         while (right - left) >= 1e-4 {
             let angle = (left + right) / 2.0;
-            let new_circle: Circle = Circle {
+
+            let new_circle = Circle {
                 center: Some(get_rotated_point(
                     main_circle_radius - circles[index].radius,
                     angle,
@@ -144,21 +150,23 @@ fn pack_circles(radiuses: &Vec<f32>, main_circle_radius: f32) -> Option<Vec<Circ
             match !new_circle.is_overlap(&circles) {
                 true => {
                     right = angle;
-                    angle_for_new_circle = angle;
+                    new_circle_angle = angle;
                 }
                 false => left = angle,
             }
         }
 
-        if angle_for_new_circle >= 0.0 {
+        if new_circle_angle >= 0.0 {
             circles[index] = Circle {
-                radius: circles[index].radius,
                 center: Some(get_rotated_point(
                     main_circle_radius - circles[index].radius,
-                    angle_for_new_circle,
+                    new_circle_angle,
                 )),
+                radius: circles[index].radius,
             };
             level_of_placed_circle_indices.push(index);
+
+            prev_circle_angle = new_circle_angle;
         }
     }
 
