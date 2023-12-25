@@ -1,5 +1,6 @@
 use crate::{
-    evaluate::heuristic_all_cases::heuristic_all_cases, evaluate::random_all_cases::random_all_cases, utils::measure_time,
+    evaluate::heuristic_all_cases::heuristic_all_cases,
+    evaluate::random_all_cases::random_all_cases, utils::measure_time,
 };
 
 mod circle;
