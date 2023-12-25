@@ -1,10 +1,11 @@
 use super::utils::{calculate_points, get_input_data, get_jury_answer};
 use crate::{
-    circle::Circle, packing, point::Point, ralgo::dichotomy_step_ralgo, utils::measure_time,
+    circle::Circle, evaluate::utils::write_row_block, packing, point::Point,
+    ralgo::dichotomy_step_ralgo, utils::measure_time,
 };
 use rand::{rngs::StdRng, Rng, SeedableRng};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
-use rust_xlsxwriter::{Format, Workbook, Worksheet};
+use rust_xlsxwriter::{Format, Workbook};
 use std::{
     fs::File,
     io::{self, BufReader},
@@ -66,38 +67,6 @@ fn get_updated_main_cirlce_radius(circles: &Vec<Circle>, r: f32) -> f32 {
         .map(|c| (c.center.unwrap().x.powi(2) + c.center.unwrap().y.powi(2)).sqrt() + r)
         .max_by(|x, y| x.partial_cmp(y).unwrap())
         .unwrap();
-}
-
-pub fn write_row_block(
-    worksheet: &Arc<Mutex<&mut Worksheet>>,
-    row: u32,
-    col: u16,
-    main_circle_radius: f32,
-    is_valid: bool,
-    points: f32,
-    time: f32,
-    format: &Format,
-) {
-    worksheet
-        .lock()
-        .unwrap()
-        .write_with_format(row, col, main_circle_radius, &format)
-        .ok();
-    worksheet
-        .lock()
-        .unwrap()
-        .write_with_format(row, col + 1, points, &format)
-        .ok();
-    worksheet
-        .lock()
-        .unwrap()
-        .write_with_format(row, col + 2, is_valid, &format)
-        .ok();
-    worksheet
-        .lock()
-        .unwrap()
-        .write_with_format(row, col + 3, time, &format)
-        .ok();
 }
 
 pub fn random_single_case(
