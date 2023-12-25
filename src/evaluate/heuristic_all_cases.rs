@@ -89,7 +89,7 @@ fn get_table_headings(params: &[(bool, f32)]) -> Vec<String> {
     return headings;
 }
 
-pub fn calc_all_cases(ralgo_params: &[(bool, f32)]) -> io::Result<()> {
+pub fn heuristic_all_cases(ralgo_params: &[(bool, f32)]) -> io::Result<()> {
     let mut workbook: Workbook = Workbook::new();
     let worksheet = workbook.add_worksheet();
     let cell_format = Format::new().set_align(rust_xlsxwriter::FormatAlign::Center);

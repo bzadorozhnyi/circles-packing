@@ -1,5 +1,5 @@
 use crate::{
-    evaluate::calc_all_cases::calc_all_cases, evaluate::rng_task::random_task, utils::measure_time,
+    evaluate::heuristic_all_cases::heuristic_all_cases, evaluate::rng_task::random_task, utils::measure_time,
 };
 
 mod circle;
@@ -27,6 +27,6 @@ fn main() {
     let (total_time_of_random, _) = measure_time(|| random_task(&ralgo_params, 0.7403));
     println!("Total time (random): {}", total_time_of_random);
 
-    let (total_time_of_heuristic, _) = measure_time(|| calc_all_cases(&ralgo_params));
+    let (total_time_of_heuristic, _) = measure_time(|| heuristic_all_cases(&ralgo_params));
     println!("Total time (heuristic): {}", total_time_of_heuristic);
 }
