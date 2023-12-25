@@ -1,6 +1,7 @@
 use std::{
     fs::File,
     io::{BufRead, BufReader},
+    sync::{Arc, Mutex},
 };
 
 use rust_xlsxwriter::{Format, Worksheet};
@@ -41,7 +42,7 @@ pub fn get_jury_answer(test_number: u32) -> f32 {
 }
 
 pub fn write_row_block(
-    worksheet: &mut Worksheet,
+    worksheet: &Arc<Mutex<&mut Worksheet>>,
     row: u32,
     col: u16,
     main_circle_radius: f32,
@@ -51,15 +52,23 @@ pub fn write_row_block(
     format: &Format,
 ) {
     worksheet
+        .lock()
+        .unwrap()
         .write_with_format(row, col, main_circle_radius, &format)
         .ok();
     worksheet
+        .lock()
+        .unwrap()
         .write_with_format(row, col + 1, points, &format)
         .ok();
     worksheet
+        .lock()
+        .unwrap()
         .write_with_format(row, col + 2, is_valid, &format)
         .ok();
     worksheet
+        .lock()
+        .unwrap()
         .write_with_format(row, col + 3, time, &format)
         .ok();
 }
