@@ -150,7 +150,7 @@ fn get_optimal_random_arrangement(
     return optimal_circles;
 }
 
-pub fn random_task(ralgo_params: &[(bool, f32)], density: f32) -> io::Result<()> {
+pub fn random_all_cases(ralgo_params: &[(bool, f32)], density: f32) -> io::Result<()> {
     let mut rng = StdRng::seed_from_u64(0);
 
     let mut workbook: Workbook = Workbook::new();

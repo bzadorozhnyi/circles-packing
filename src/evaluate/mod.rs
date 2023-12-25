@@ -1,2 +1,2 @@
 pub mod heuristic_all_cases;
-pub mod rng_task;
+pub mod random_all_cases;
