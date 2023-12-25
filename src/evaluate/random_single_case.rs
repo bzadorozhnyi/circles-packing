@@ -1,17 +1,15 @@
-use std::{
-    fs::File,
-    io::{self, BufReader},
-};
-
-use rand::{rngs::StdRng, Rng, SeedableRng};
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
-use rust_xlsxwriter::{Format, Workbook};
-
+use super::utils::{calculate_points, get_input_data, get_jury_answer};
 use crate::{
     circle::Circle, packing, point::Point, ralgo::dichotomy_step_ralgo, utils::measure_time,
 };
-
-use super::utils::{calculate_points, get_input_data, get_jury_answer, write_row_block};
+use rand::{rngs::StdRng, Rng, SeedableRng};
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
+use rust_xlsxwriter::{Format, Workbook, Worksheet};
+use std::{
+    fs::File,
+    io::{self, BufReader},
+    sync::{Arc, Mutex},
+};
 
 fn get_table_headings(params: &[(bool, f32)]) -> Vec<String> {
     let mut headings: Vec<String> = vec!["Launch".to_string()];
@@ -28,11 +26,13 @@ fn get_table_headings(params: &[(bool, f32)]) -> Vec<String> {
 
 fn generate_random_arrangement(
     main_circle_radius: f32,
-    rng: &mut StdRng,
+    rng: &Arc<Mutex<StdRng>>,
     radiuses: &Vec<f32>,
 ) -> (Vec<Circle>, f32) {
     let mut circles = vec![];
     for i in 0..radiuses.len() {
+        let mut rng = rng.lock().unwrap();
+
         circles.push(Circle::new(
             radiuses[i],
             Point {
@@ -42,14 +42,7 @@ fn generate_random_arrangement(
         ))
     }
 
-    let mut r = circles
-        .iter()
-        .map(|c| {
-            let center = c.center.unwrap();
-            main_circle_radius - (center.x.powi(2) + center.y.powi(2)).sqrt()
-        })
-        .min_by(|x, y| x.partial_cmp(y).unwrap())
-        .unwrap();
+    let mut r = f32::MAX;
 
     for i in 0..circles.len() {
         let center_i = circles[i].center.unwrap();
@@ -75,20 +68,54 @@ fn get_updated_main_cirlce_radius(circles: &Vec<Circle>, r: f32) -> f32 {
         .unwrap();
 }
 
+pub fn write_row_block(
+    worksheet: &Arc<Mutex<&mut Worksheet>>,
+    row: u32,
+    col: u16,
+    main_circle_radius: f32,
+    is_valid: bool,
+    points: f32,
+    time: f32,
+    format: &Format,
+) {
+    worksheet
+        .lock()
+        .unwrap()
+        .write_with_format(row, col, main_circle_radius, &format)
+        .ok();
+    worksheet
+        .lock()
+        .unwrap()
+        .write_with_format(row, col + 1, points, &format)
+        .ok();
+    worksheet
+        .lock()
+        .unwrap()
+        .write_with_format(row, col + 2, is_valid, &format)
+        .ok();
+    worksheet
+        .lock()
+        .unwrap()
+        .write_with_format(row, col + 3, time, &format)
+        .ok();
+}
+
 pub fn random_single_case(
     test_number: usize,
     launches: usize,
     ralgo_params: &[(bool, f32)],
 ) -> io::Result<()> {
-    let mut rng = StdRng::seed_from_u64(0);
+    let rng = Arc::new(Mutex::new(StdRng::seed_from_u64(0)));
 
     let mut workbook: Workbook = Workbook::new();
-    let worksheet = workbook.add_worksheet();
+    let worksheet = Arc::new(Mutex::new(workbook.add_worksheet()));
     let cell_format = Format::new().set_align(rust_xlsxwriter::FormatAlign::Center);
 
     // setup headings
     for (col, data) in get_table_headings(ralgo_params).iter().enumerate() {
         worksheet
+            .lock()
+            .unwrap()
             .write_with_format(0, col as u16, data, &cell_format)
             .ok();
     }
@@ -104,66 +131,42 @@ pub fn random_single_case(
 
     let main_circle_radius: f32 = radiuses.iter().map(|r| r.powi(2)).sum::<f32>().sqrt();
 
-    for iter in 1..=launches {
+    (1..=launches).into_par_iter().for_each(|launch| {
+        println!("Launch: {launch}");
+
+        let worksheet = Arc::clone(&worksheet);
+        let rng = Arc::clone(&rng);
+
         worksheet
-            .write_with_format(iter as u32, 0, iter as u32, &cell_format)
+            .lock()
+            .unwrap()
+            .write_with_format(launch as u32, 0, launch as u32, &cell_format)
             .ok();
 
-        let (circles, r) = generate_random_arrangement(main_circle_radius, &mut rng, &radiuses);
+        let (circles, r) = generate_random_arrangement(main_circle_radius, &rng, &radiuses);
+        let updated_main_circle_radius = get_updated_main_cirlce_radius(&circles, r);
 
-        let updated_main_circle_radius = get_updated_main_cirlce_radius(&circles, r) * 10.0;
+        for (index, (reset_step, eps)) in ralgo_params.iter().enumerate() {
+            // get result of dichotomy algorithm
+            let (ralgo_time, (new_main_circle_radius, new_circles)) = measure_time(|| {
+                dichotomy_step_ralgo(updated_main_circle_radius, &circles, *reset_step, *eps)
+            });
+            let points = calculate_points(new_main_circle_radius, jury_answer);
 
-        // let mut results = vec![];
-        let results: Vec<(f32, f32, bool, f32)> = ralgo_params
-            .par_iter()
-            .map(|(reset_step, eps)| {
-                // get result of dichotomy algorithm
-                let (ralgo_time, (new_main_circle_radius, new_circles)) = measure_time(|| {
-                    dichotomy_step_ralgo(updated_main_circle_radius, &circles, *reset_step, *eps)
-                });
-                let points = calculate_points(new_main_circle_radius, jury_answer);
-
-                (
-                    new_main_circle_radius,
-                    points,
-                    packing::is_valid_pack(new_main_circle_radius, &new_circles),
-                    ralgo_time,
-                )
-            })
-            .collect();
-
-        // for (reset_step, eps) in ralgo_params {
-        //     // get result of dichotomy algorithm
-        //     let (ralgo_time, (new_main_circle_radius, new_circles)) = measure_time(|| {
-        //         dichotomy_step_ralgo(updated_main_circle_radius, &circles, *reset_step, *eps)
-        //     });
-        //     let points = calculate_points(new_main_circle_radius, jury_answer);
-
-        //     results.push((
-        //         new_main_circle_radius,
-        //         points,
-        //         packing::is_valid_pack(new_main_circle_radius, &new_circles),
-        //         ralgo_time,
-        //     ));
-        // }
-
-        // write dichotomy results into table
-        for (index, result) in results.into_iter().enumerate() {
-            let (radius, points, is_valid, time) = result;
+            // write dichotomy results into table
             write_row_block(
-                worksheet,
-                iter as u32,
+                &worksheet,
+                launch as u32,
                 (index * 4 + 1) as u16,
-                radius,
-                is_valid,
+                new_main_circle_radius,
+                packing::is_valid_pack(new_main_circle_radius, &new_circles),
                 points,
-                time,
+                ralgo_time,
                 &cell_format,
             );
         }
-    }
-
-    worksheet.autofit();
+    });
+    worksheet.lock().unwrap().autofit();
 
     workbook
         .save(format!(
