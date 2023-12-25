@@ -1,12 +1,13 @@
-use crate::{calc_all_cases::calc_all_cases, rng_task::random_task, utils::measure_time};
+use crate::{
+    evaluate::calc_all_cases::calc_all_cases, evaluate::rng_task::random_task, utils::measure_time,
+};
 
-mod calc_all_cases;
 mod circle;
+mod evaluate;
 mod packing;
 mod plot;
 mod point;
 mod ralgo;
-mod rng_task;
 mod utils;
 
 fn main() {
