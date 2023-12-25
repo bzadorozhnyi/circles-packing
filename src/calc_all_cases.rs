@@ -200,7 +200,7 @@ pub fn calc_all_cases(ralgo_params: &[(bool, f32)]) -> io::Result<()> {
 
     worksheet.autofit();
 
-    workbook.save("result-multi-linux.xlsx").ok();
+    workbook.save("./results/heuristic/result-multi-linux.xlsx").ok();
 
     Ok(())
 }

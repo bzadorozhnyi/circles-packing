@@ -254,7 +254,7 @@ pub fn random_task(ralgo_params: &[(bool, f32)], density: f32) -> io::Result<()>
     worksheet.autofit();
 
     workbook
-        .save(format!("random-result-multi (density = {density:.5}).xlsx"))
+        .save(format!("./results/random/random-result-multi (density = {density:.5}).xlsx"))
         .ok();
 
     Ok(())
