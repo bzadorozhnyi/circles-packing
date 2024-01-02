@@ -6,7 +6,15 @@ use std::{
 
 use rust_xlsxwriter::{Format, Worksheet};
 
-pub fn get_input_data(reader: BufReader<File>) -> (usize, Vec<f32>) {
+fn get_buf_reader(file_name: String) -> BufReader<File> {
+    let file = File::open(file_name).expect("Failed to open file");
+    BufReader::new(file)
+}
+
+pub fn get_input_data(test_number: u32) -> (usize, Vec<f32>) {
+    let file_name = format!("./input/input{:03}.txt", test_number);
+    let reader = get_buf_reader(file_name);
+
     let mut lines = reader.lines();
     let first_line = lines.next().expect("Empty file").unwrap();
     let n: usize = first_line.trim().parse().expect("Invalid number");
@@ -27,8 +35,7 @@ pub fn get_input_data(reader: BufReader<File>) -> (usize, Vec<f32>) {
 
 pub fn get_jury_answer(test_number: u32) -> f32 {
     let file_name = format!("./output/out{:03}.txt", test_number);
-    let file = File::open(file_name).expect("Failed to open file");
-    let reader = BufReader::new(file);
+    let reader = get_buf_reader(file_name);
 
     reader
         .lines()

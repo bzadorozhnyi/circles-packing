@@ -1,5 +1,5 @@
 use rand::{rngs::StdRng, Rng, SeedableRng};
-use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterator};
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use crate::evaluate::utils::*;
 use crate::packing::{self};
@@ -9,7 +9,6 @@ use crate::{circle::Circle, point::Point};
 use rust_xlsxwriter::{column_number_to_name, Format, Formula, Workbook};
 use std::sync::{Arc, Mutex};
 use std::{fs, io};
-use std::{fs::File, io::BufReader};
 
 fn get_table_headings(params: &[(bool, f32)]) -> Vec<String> {
     let mut headings: Vec<String> = vec!["Test".to_string()];
@@ -116,59 +115,52 @@ pub fn random_all_cases(ralgo_params: &[(bool, f32)], density: f32) -> io::Resul
 
     let number_of_tests = sorted_paths.len();
 
-    sorted_paths
-        .into_par_iter()
-        .enumerate()
-        .for_each(|(test_number, path)| {
-            println!("Test {}", test_number + 1);
+    (1..=50).into_par_iter().for_each(|test_number| {
+        println!("Test {}", test_number);
 
-            // write the test number in the far left column
-            let row_number = (test_number + 1) as u32;
-            worksheet
-                .lock()
-                .unwrap()
-                .write(row_number, 0, row_number)
-                .ok();
+        // write the test number in the far left column
+        worksheet
+            .lock()
+            .unwrap()
+            .write(test_number, 0, test_number)
+            .ok();
 
-            // get input data
-            let file_name = path.display().to_string();
-            let input_file = File::open(file_name).expect("Failed to open file");
-            let reader = BufReader::new(input_file);
-            let (_, radiuses) = get_input_data(reader);
+        // get input data
+        let (_, radiuses) = get_input_data(test_number);
 
-            // generate start values
-            let main_circle_radius: f32 =
-                (radiuses.iter().map(|r| r.powi(2)).sum::<f32>() / density).sqrt();
+        // generate start values
+        let main_circle_radius: f32 =
+            (radiuses.iter().map(|r| r.powi(2)).sum::<f32>() / density).sqrt();
 
-            let rng = Arc::clone(&rng);
-            let circles = get_optimal_random_arrangement(&rng, 700, main_circle_radius, &radiuses);
+        let rng = Arc::clone(&rng);
+        let circles = get_optimal_random_arrangement(&rng, 700, main_circle_radius, &radiuses);
 
-            let main_circle_radius = main_circle_radius * 10.0;
+        let main_circle_radius = main_circle_radius * 10.0;
 
-            // get jury answer of current test
-            let jury_answer = get_jury_answer(row_number);
+        // get jury answer of current test
+        let jury_answer = get_jury_answer(test_number);
 
-            // run dichotomy ralgo with different parameters in threads
-            for (index, (reset_step, eps)) in ralgo_params.iter().enumerate() {
-                // get result of dichotomy algorithm
-                let (ralgo_time, (new_main_circle_radius, new_circles)) = measure_time(|| {
-                    dichotomy_step_ralgo(main_circle_radius, &circles, *reset_step, *eps)
-                });
-                let points = calculate_points(new_main_circle_radius, jury_answer);
+        // run dichotomy ralgo with different parameters in threads
+        for (index, (reset_step, eps)) in ralgo_params.iter().enumerate() {
+            // get result of dichotomy algorithm
+            let (ralgo_time, (new_main_circle_radius, new_circles)) = measure_time(|| {
+                dichotomy_step_ralgo(main_circle_radius, &circles, *reset_step, *eps)
+            });
+            let points = calculate_points(new_main_circle_radius, jury_answer);
 
-                // write dichotomy results into table
-                write_row_block(
-                    &worksheet,
-                    row_number,
-                    (index * 4 + 1) as u16, // skip first 5 columns (heuristic result)
-                    new_main_circle_radius,
-                    packing::is_valid_pack(new_main_circle_radius, &new_circles),
-                    points,
-                    ralgo_time,
-                    &cell_format,
-                );
-            }
-        });
+            // write dichotomy results into table
+            write_row_block(
+                &worksheet,
+                test_number,
+                (index * 4 + 1) as u16, // skip first 5 columns (heuristic result)
+                new_main_circle_radius,
+                packing::is_valid_pack(new_main_circle_radius, &new_circles),
+                points,
+                ralgo_time,
+                &cell_format,
+            );
+        }
+    });
 
     let mut col: u16 = 2;
     while col < (ralgo_params.len() * 4 + 1) as u16 {

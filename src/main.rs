@@ -32,7 +32,7 @@ fn main() {
     let (total_time_of_heuristic, _) = measure_time(|| heuristic_all_cases(&ralgo_params));
     println!("Total time (heuristic): {}", total_time_of_heuristic);
 
-    let test_number = 50;
+    let test_number = 10;
     let (total_time_of_single_random, _) =
         measure_time(|| random_single_case(test_number, 50, &ralgo_params));
     println!(

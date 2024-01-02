@@ -7,13 +7,12 @@ use rand::{rngs::StdRng, Rng, SeedableRng};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use rust_xlsxwriter::{Format, Workbook};
 use std::{
-    fs::File,
-    io::{self, BufReader},
+    io::{self},
     sync::{Arc, Mutex},
 };
 
 fn get_table_headings(params: &[(bool, f32)]) -> Vec<String> {
-    let mut headings: Vec<String> = vec!["Launch".to_string()];
+    let mut headings: Vec<String> = vec!["Launch".to_string(), "R".to_string(), "r".to_string()];
     let heading_names = ["R", "Points", "Is valid?", "Time"];
     for (reset, eps) in params {
         let reset_str = if *reset { "P" } else { "B" };
@@ -90,10 +89,7 @@ pub fn random_single_case(
     }
 
     // get input data
-    let file_name = format!("./input/input{:03}.txt", test_number);
-    let file = File::open(file_name).expect("Failed to open file");
-    let reader = BufReader::new(file);
-    let (_, radiuses) = get_input_data(reader);
+    let (_, radiuses) = get_input_data(test_number as u32);
 
     // get jury answer of current test
     let jury_answer = get_jury_answer(test_number as u32);
@@ -115,6 +111,18 @@ pub fn random_single_case(
         let (circles, r) = generate_random_arrangement(main_circle_radius, &rng, &radiuses);
         let updated_main_circle_radius = get_updated_main_cirlce_radius(&circles, r);
 
+        worksheet
+            .lock()
+            .unwrap()
+            .write_with_format(launch as u32, 1, updated_main_circle_radius, &cell_format)
+            .ok();
+
+        worksheet
+            .lock()
+            .unwrap()
+            .write_with_format(launch as u32, 2, r, &cell_format)
+            .ok();
+
         for (index, (reset_step, eps)) in ralgo_params.iter().enumerate() {
             // get result of dichotomy algorithm
             let (ralgo_time, (new_main_circle_radius, new_circles)) = measure_time(|| {
@@ -126,7 +134,7 @@ pub fn random_single_case(
             write_row_block(
                 &worksheet,
                 launch as u32,
-                (index * 4 + 1) as u16,
+                (index * 4 + 3) as u16,
                 new_main_circle_radius,
                 packing::is_valid_pack(new_main_circle_radius, &new_circles),
                 points,
