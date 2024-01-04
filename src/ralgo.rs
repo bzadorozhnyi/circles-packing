@@ -75,6 +75,7 @@ fn ralg5(
     mut x: nalgebra::DVector<f32>,
     alpha: f32,
     mut h: f32,
+    q1: f32,
     epsx: f32,
     epsg: f32,
     max_iterations: usize,
@@ -120,6 +121,10 @@ fn ralg5(
             }
 
             d = dx.dot(&g1);
+        }
+
+        if ls == 1 {
+            h *= q1;
         }
 
         if ddx < epsx {
@@ -199,6 +204,7 @@ pub fn dichotomy_step_ralgo(
             x.clone(),
             3.0,
             step_size.clone(),
+            0.9,
             1e-6,
             1e-7,
             3000,
