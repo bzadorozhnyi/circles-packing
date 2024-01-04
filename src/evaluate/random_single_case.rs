@@ -12,7 +12,12 @@ use std::{
 };
 
 fn get_table_headings(params: &[(bool, f32)]) -> Vec<String> {
-    let mut headings: Vec<String> = vec!["Launch".to_string(), "R".to_string(), "r".to_string()];
+    let mut headings: Vec<String> = vec![
+        "Launch".to_string(),
+        "R_gen".to_string(),
+        "R".to_string(),
+        "r".to_string(),
+    ];
     let heading_names = ["R", "Points", "Is valid?", "Time"];
     for (reset, eps) in params {
         let reset_str = if *reset { "P" } else { "B" };
@@ -33,13 +38,19 @@ fn generate_random_arrangement(
     for i in 0..radiuses.len() {
         let mut rng = rng.lock().unwrap();
 
-        circles.push(Circle::new(
-            radiuses[i],
-            Point {
-                x: rng.gen_range(-main_circle_radius..=main_circle_radius),
-                y: rng.gen_range(-main_circle_radius..=main_circle_radius),
-            },
-        ))
+        let (mut x, mut y);
+        loop {
+            (x, y) = (
+                rng.gen_range(-main_circle_radius..=main_circle_radius),
+                rng.gen_range(-main_circle_radius..=main_circle_radius),
+            );
+
+            if x.powi(2) + y.powi(2) <= main_circle_radius.powi(2) {
+                break;
+            }
+        }
+
+        circles.push(Circle::new(radiuses[i], Point { x, y }))
     }
 
     let mut r = f32::MAX;
@@ -94,7 +105,7 @@ pub fn random_single_case(
     // get jury answer of current test
     let jury_answer = get_jury_answer(test_number as u32);
 
-    let main_circle_radius: f32 = radiuses.iter().map(|r| r.powi(2)).sum::<f32>().sqrt();
+    let gen_main_circle_radius: f32 = radiuses.iter().map(|r| r.powi(2)).sum::<f32>().sqrt();
 
     (1..=launches).into_par_iter().for_each(|launch| {
         println!("Launch: {launch}");
@@ -108,19 +119,25 @@ pub fn random_single_case(
             .write_with_format(launch as u32, 0, launch as u32, &cell_format)
             .ok();
 
-        let (circles, r) = generate_random_arrangement(main_circle_radius, &rng, &radiuses);
+        let (circles, r) = generate_random_arrangement(gen_main_circle_radius, &rng, &radiuses);
         let updated_main_circle_radius = get_updated_main_cirlce_radius(&circles, r);
 
         worksheet
             .lock()
             .unwrap()
-            .write_with_format(launch as u32, 1, updated_main_circle_radius, &cell_format)
+            .write_with_format(launch as u32, 1, gen_main_circle_radius, &cell_format)
             .ok();
 
         worksheet
             .lock()
             .unwrap()
-            .write_with_format(launch as u32, 2, r, &cell_format)
+            .write_with_format(launch as u32, 2, updated_main_circle_radius, &cell_format)
+            .ok();
+
+        worksheet
+            .lock()
+            .unwrap()
+            .write_with_format(launch as u32, 3, r, &cell_format)
             .ok();
 
         for (index, (reset_step, eps)) in ralgo_params.iter().enumerate() {
@@ -134,7 +151,7 @@ pub fn random_single_case(
             write_row_block(
                 &worksheet,
                 launch as u32,
-                (index * 4 + 3) as u16,
+                (index * 4 + 4) as u16,
                 new_main_circle_radius,
                 packing::is_valid_pack(new_main_circle_radius, &new_circles),
                 points,
