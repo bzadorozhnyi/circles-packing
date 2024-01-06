@@ -11,7 +11,7 @@ pub fn draw_plot(main_circle_radius: f32, circles: &Vec<circle::Circle>) {
 
     let root = root.apply_coord_spec(Cartesian2d::<RangedCoordf32, RangedCoordf32>::new(
         -main_circle_radius..main_circle_radius,
-        -main_circle_radius..main_circle_radius,
+        main_circle_radius..-main_circle_radius,
         (0..plot_size, 0..plot_size),
     ));
 
