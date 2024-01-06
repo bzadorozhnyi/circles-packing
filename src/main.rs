@@ -1,6 +1,8 @@
 use crate::{
-    evaluate::heuristic_all_cases::heuristic_all_cases,
-    evaluate::{random_all_cases::random_all_cases, random_single_case::random_single_case},
+    evaluate::{
+        heuristic_all_cases::heuristic_all_cases, heuristic_single_case::heuristic_single_case,
+        random_all_cases::random_all_cases, random_single_case::random_single_case
+    },
     utils::measure_time,
 };
 
@@ -39,4 +41,6 @@ fn main() {
         "Total time (single random test = {test_number}): {}",
         total_time_of_single_random
     );
+
+    heuristic_single_case(12);
 }
