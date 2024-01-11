@@ -81,5 +81,5 @@ pub fn write_row_block(
 }
 
 pub fn calculate_points(answer: f32, jury_answer: f32) -> f32 {
-    ((2.0 - (answer / jury_answer)) * 100.0).max(0.0).round()
+    ((2.0 - (answer / jury_answer)) * 100.0).max(0.0)
 }
