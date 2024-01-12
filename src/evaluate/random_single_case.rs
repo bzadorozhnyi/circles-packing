@@ -12,12 +12,10 @@ use std::{
 };
 
 fn get_table_headings(params: &[(bool, f32)]) -> Vec<String> {
-    let mut headings: Vec<String> = vec![
-        "Launch".to_string(),
-        "R_gen".to_string(),
-        "R".to_string(),
-        "r".to_string(),
-    ];
+    let mut headings: Vec<String> = vec!["Launch", "R_gen", "R", "r"]
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
     let heading_names = ["R", "Points", "Is valid?", "Time"];
     for (reset, eps) in params {
         let reset_str = if *reset { "P" } else { "B" };
@@ -99,10 +97,7 @@ pub fn random_single_case(
             .ok();
     }
 
-    // get input data
     let (_, radiuses) = get_input_data(test_number as u32);
-
-    // get jury answer of current test
     let jury_answer = get_jury_answer(test_number as u32);
 
     let gen_main_circle_radius: f32 = radiuses.iter().map(|r| r.powi(2)).sum::<f32>().sqrt();
