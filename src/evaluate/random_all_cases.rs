@@ -107,16 +107,14 @@ pub fn random_all_cases(ralgo_params: &[(bool, f32)], density: f32) -> io::Resul
             .ok();
     }
 
-    // get sorted path (in linux paths are unsorted)
-    let mut sorted_paths = fs::read_dir("./input/")?
+    let number_of_tests = fs::read_dir("./input/")?
         .map(|res| res.map(|e| e.path()))
-        .collect::<Result<Vec<_>, io::Error>>()?;
-    sorted_paths.sort();
-
-    let number_of_tests = sorted_paths.len();
+        .collect::<Result<Vec<_>, io::Error>>()?
+        .len();
 
     (1..=50).into_par_iter().for_each(|test_number| {
         println!("Test {}", test_number);
+        let rng = Arc::clone(&rng);
 
         // write the test number in the far left column
         worksheet
@@ -125,20 +123,14 @@ pub fn random_all_cases(ralgo_params: &[(bool, f32)], density: f32) -> io::Resul
             .write(test_number, 0, test_number)
             .ok();
 
-        // get input data
         let (_, radiuses) = get_input_data(test_number);
+        let jury_answer = get_jury_answer(test_number);
 
         // generate start values
         let main_circle_radius: f32 =
             (radiuses.iter().map(|r| r.powi(2)).sum::<f32>() / density).sqrt();
-
-        let rng = Arc::clone(&rng);
         let circles = get_optimal_random_arrangement(&rng, 700, main_circle_radius, &radiuses);
-
         let main_circle_radius = main_circle_radius * 10.0;
-
-        // get jury answer of current test
-        let jury_answer = get_jury_answer(test_number);
 
         // run dichotomy ralgo with different parameters in threads
         for (index, (reset_step, eps)) in ralgo_params.iter().enumerate() {
