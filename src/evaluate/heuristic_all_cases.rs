@@ -8,13 +8,10 @@ use std::sync::{Arc, Mutex};
 use std::{fs, io};
 
 fn get_table_headings(params: &[(bool, f32)]) -> Vec<String> {
-    let mut headings: Vec<String> = vec![
-        "Test".to_string(),
-        "R".to_string(),
-        "Points".to_string(),
-        "Is valid?".to_string(),
-        "Time".to_string(),
-    ];
+    let mut headings: Vec<String> = vec!["Test", "R", "Points", "Is valid?", "Time"]
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
     for (reset, eps) in params {
         let reset_str = if *reset { "P" } else { "B" };
         for i in 1..5 {
@@ -39,15 +36,12 @@ pub fn heuristic_all_cases(ralgo_params: &[(bool, f32)]) -> io::Result<()> {
             .ok();
     }
 
-    // get sorted path (in linux paths are unsorted)
-    let mut sorted_paths = fs::read_dir("./input/")?
+    let number_of_tests = fs::read_dir("./input/")?
         .map(|res| res.map(|e| e.path()))
-        .collect::<Result<Vec<_>, io::Error>>()?;
-    sorted_paths.sort();
+        .collect::<Result<Vec<_>, io::Error>>()?
+        .len();
 
-    let number_of_tests = sorted_paths.len();
-
-    (1..=50).into_par_iter().for_each(|test_number| {
+    (1..=number_of_tests as u32).into_par_iter().for_each(|test_number| {
         println!("Test {}", test_number);
 
         // write the test number in the far left column
@@ -57,13 +51,7 @@ pub fn heuristic_all_cases(ralgo_params: &[(bool, f32)]) -> io::Result<()> {
             .write(test_number, 0, test_number)
             .ok();
 
-        // get input data
-        // let file_name = path.display().to_string();
-        // let input_file = File::open(file_name).expect("Failed to open file");
-        // let reader = BufReader::new(input_file);
         let (_, mut radiuses) = get_input_data(test_number);
-
-        // get jury answer of current test
         let jury_answer = get_jury_answer(test_number);
 
         // get result of heuristic algorithm
