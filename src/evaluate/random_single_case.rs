@@ -5,7 +5,7 @@ use crate::{
 };
 use rand::{rngs::StdRng, Rng, SeedableRng};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
-use rust_xlsxwriter::{Format, Workbook};
+use rust_xlsxwriter::{column_number_to_name, Format, Formula, Workbook};
 use std::{
     io::{self},
     sync::{Arc, Mutex},
@@ -155,6 +155,72 @@ pub fn random_single_case(
             );
         }
     });
+
+    let (first_row_index, last_row_index) = (2, launches + 1);
+    let generate_range = |column: String| -> String {
+        format!("{column}{first_row_index}:{column}{last_row_index}")
+    };
+
+    let mut col = 4_u16;
+    while col < (ralgo_params.len() * 4 + 4) as u16 {
+        let radius_column = column_number_to_name(col);
+        let point_column = column_number_to_name(col + 1);
+        let validation_column = column_number_to_name(col + 2);
+        let time_column = column_number_to_name(col + 3);
+
+        let radius_range = generate_range(radius_column);
+        let point_range = generate_range(point_column);
+        let validation_range = generate_range(validation_column);
+        let time_range = generate_range(time_column);
+
+        let best_result_row_formula =
+            format!("MATCH(MINIFS({radius_range}; {validation_range}; TRUE()); {radius_range}; 0)");
+
+        let best_result_radius_formula =
+            format!("=INDEX({radius_range}; {best_result_row_formula}; 0)");
+
+        let best_result_points_formula =
+            format!("=INDEX({point_range}; {best_result_row_formula}; 0)");
+
+        let best_result_time_formula =
+            format!("=INDEX({time_range}; {best_result_row_formula}; 0)");
+
+        worksheet
+            .lock()
+            .unwrap()
+            .write_with_format(
+                last_row_index as u32,
+                col,
+                Formula::new(best_result_radius_formula),
+                &cell_format,
+            )
+            .ok();
+
+        worksheet
+            .lock()
+            .unwrap()
+            .write_with_format(
+                last_row_index as u32,
+                col + 1,
+                Formula::new(best_result_points_formula),
+                &cell_format,
+            )
+            .ok();
+
+        worksheet
+            .lock()
+            .unwrap()
+            .write_with_format(
+                last_row_index as u32,
+                col + 3,
+                Formula::new(best_result_time_formula),
+                &cell_format,
+            )
+            .ok();
+
+        col += 4;
+    }
+
     worksheet.lock().unwrap().autofit();
 
     workbook
