@@ -86,153 +86,167 @@ pub fn random_single_case(
     launches: usize,
     algorithm_params: &[(bool, f32)],
     ralgo_params: &RalgoParams,
+    alpha_q1_pairs: Vec<(f32, f32)>,
 ) -> io::Result<()> {
     let rng = Arc::new(Mutex::new(StdRng::seed_from_u64(0)));
-
-    let mut workbook: Workbook = Workbook::new();
-    let worksheet = Arc::new(Mutex::new(workbook.add_worksheet()));
-    let cell_format = Format::new().set_align(rust_xlsxwriter::FormatAlign::Center);
-
-    // setup headings
-    for (col, data) in get_table_headings(algorithm_params).iter().enumerate() {
-        worksheet
-            .lock()
-            .unwrap()
-            .write_with_format(0, col as u16, data, &cell_format)
-            .ok();
-    }
-
     let (_, radiuses) = get_input_data(test_number as u32);
     let jury_answer = get_jury_answer(test_number as u32);
 
-    let gen_main_circle_radius: f32 = radiuses.iter().map(|r| r.powi(2)).sum::<f32>().sqrt();
+    let gen_main_circle_radius: f32 = radiuses.iter().map(|r| r.powi(2)).sum::<f32>().sqrt() * 1.2;
 
-    (1..=launches).into_par_iter().for_each(|launch| {
-        println!("Launch: {launch}");
+    let mut workbook: Workbook = Workbook::new();
 
-        let worksheet = Arc::clone(&worksheet);
-        let rng = Arc::clone(&rng);
+    for (alpha, q1) in alpha_q1_pairs {
+        println!("Generate worksheet with ralgo params = {ralgo_params:?}");
+        let ralgo_params = ralgo_params.with_alpha(alpha).with_q1(q1);
 
-        worksheet
-            .lock()
-            .unwrap()
-            .write_with_format(launch as u32, 0, launch as u32, &cell_format)
-            .ok();
-
-        let (circles, r) = generate_random_arrangement(gen_main_circle_radius, &rng, &radiuses);
-        let updated_main_circle_radius = get_updated_main_cirlce_radius(&circles, r);
+        let worksheet = Arc::new(Mutex::new(workbook.add_worksheet()));
 
         worksheet
             .lock()
             .unwrap()
-            .write_with_format(launch as u32, 1, gen_main_circle_radius, &cell_format)
+            .set_name(format!("alpha = {alpha}, q1 = {q1}"))
             .ok();
 
-        worksheet
-            .lock()
-            .unwrap()
-            .write_with_format(launch as u32, 2, updated_main_circle_radius, &cell_format)
-            .ok();
+        let cell_format = Format::new().set_align(rust_xlsxwriter::FormatAlign::Center);
 
-        worksheet
-            .lock()
-            .unwrap()
-            .write_with_format(launch as u32, 3, r, &cell_format)
-            .ok();
-
-        for (index, (reset_step, eps)) in algorithm_params.iter().enumerate() {
-            // get result of dichotomy algorithm
-            let (ralgo_time, (new_main_circle_radius, new_circles)) = measure_time(|| {
-                dichotomy_step_ralgo(
-                    updated_main_circle_radius,
-                    &circles,
-                    *reset_step,
-                    *eps,
-                    &ralgo_params,
-                )
-            });
-            let points = calculate_points(new_main_circle_radius, jury_answer);
-
-            // write dichotomy results into table
-            write_row_block(
-                &worksheet,
-                launch as u32,
-                (index * 4 + 4) as u16,
-                new_main_circle_radius,
-                packing::is_valid_pack(new_main_circle_radius, &new_circles),
-                points,
-                ralgo_time,
-                &cell_format,
-            );
+        // setup headings
+        for (col, data) in get_table_headings(algorithm_params).iter().enumerate() {
+            worksheet
+                .lock()
+                .unwrap()
+                .write_with_format(0, col as u16, data, &cell_format)
+                .ok();
         }
-    });
 
-    let (first_row_index, last_row_index) = (2, launches + 1);
-    let generate_range = |column: String| -> String {
-        format!("{column}{first_row_index}:{column}{last_row_index}")
-    };
+        (1..=launches).into_par_iter().for_each(|launch| {
+            println!("Launch: {launch}");
 
-    let mut col = 4_u16;
-    while col < (algorithm_params.len() * 4 + 4) as u16 {
-        let radius_column = column_number_to_name(col);
-        let point_column = column_number_to_name(col + 1);
-        let validation_column = column_number_to_name(col + 2);
-        let time_column = column_number_to_name(col + 3);
+            let worksheet = Arc::clone(&worksheet);
+            let rng = Arc::clone(&rng);
 
-        let radius_range = generate_range(radius_column);
-        let point_range = generate_range(point_column);
-        let validation_range = generate_range(validation_column);
-        let time_range = generate_range(time_column);
+            worksheet
+                .lock()
+                .unwrap()
+                .write_with_format(launch as u32, 0, launch as u32, &cell_format)
+                .ok();
 
-        let best_result_row_formula =
-            format!("MATCH(MINIFS({radius_range}; {validation_range}; TRUE()); {radius_range}; 0)");
+            let (circles, r) = generate_random_arrangement(gen_main_circle_radius, &rng, &radiuses);
+            let updated_main_circle_radius = get_updated_main_cirlce_radius(&circles, r);
 
-        let best_result_radius_formula =
-            format!("=INDEX({radius_range}; {best_result_row_formula}; 0)");
+            worksheet
+                .lock()
+                .unwrap()
+                .write_with_format(launch as u32, 1, gen_main_circle_radius, &cell_format)
+                .ok();
 
-        let best_result_points_formula =
-            format!("=INDEX({point_range}; {best_result_row_formula}; 0)");
+            worksheet
+                .lock()
+                .unwrap()
+                .write_with_format(launch as u32, 2, updated_main_circle_radius, &cell_format)
+                .ok();
 
-        let best_result_time_formula =
-            format!("=INDEX({time_range}; {best_result_row_formula}; 0)");
+            worksheet
+                .lock()
+                .unwrap()
+                .write_with_format(launch as u32, 3, r, &cell_format)
+                .ok();
 
-        worksheet
-            .lock()
-            .unwrap()
-            .write_with_format(
-                last_row_index as u32,
-                col,
-                Formula::new(best_result_radius_formula),
-                &cell_format,
-            )
-            .ok();
+            for (index, (reset_step, eps)) in algorithm_params.iter().enumerate() {
+                // get result of dichotomy algorithm
+                let (ralgo_time, (new_main_circle_radius, new_circles)) = measure_time(|| {
+                    dichotomy_step_ralgo(
+                        updated_main_circle_radius,
+                        &circles,
+                        *reset_step,
+                        *eps,
+                        &ralgo_params,
+                    )
+                });
+                let points = calculate_points(new_main_circle_radius, jury_answer);
 
-        worksheet
-            .lock()
-            .unwrap()
-            .write_with_format(
-                last_row_index as u32,
-                col + 1,
-                Formula::new(best_result_points_formula),
-                &cell_format,
-            )
-            .ok();
+                // write dichotomy results into table
+                write_row_block(
+                    &worksheet,
+                    launch as u32,
+                    (index * 4 + 4) as u16,
+                    new_main_circle_radius,
+                    packing::is_valid_pack(new_main_circle_radius, &new_circles),
+                    points,
+                    ralgo_time,
+                    &cell_format,
+                );
+            }
+        });
 
-        worksheet
-            .lock()
-            .unwrap()
-            .write_with_format(
-                last_row_index as u32,
-                col + 3,
-                Formula::new(best_result_time_formula),
-                &cell_format,
-            )
-            .ok();
+        let (first_row_index, last_row_index) = (2, launches + 1);
+        let generate_range = |column: String| -> String {
+            format!("{column}{first_row_index}:{column}{last_row_index}")
+        };
 
-        col += 4;
+        let mut col = 4_u16;
+        while col < (algorithm_params.len() * 4 + 4) as u16 {
+            let radius_column = column_number_to_name(col);
+            let point_column = column_number_to_name(col + 1);
+            let validation_column = column_number_to_name(col + 2);
+            let time_column = column_number_to_name(col + 3);
+
+            let radius_range = generate_range(radius_column);
+            let point_range = generate_range(point_column);
+            let validation_range = generate_range(validation_column);
+            let time_range = generate_range(time_column);
+
+            let best_result_row_formula = format!(
+                "MATCH(MINIFS({radius_range}; {validation_range}; TRUE()); {radius_range}; 0)"
+            );
+
+            let best_result_radius_formula =
+                format!("=INDEX({radius_range}; {best_result_row_formula}; 0)");
+
+            let best_result_points_formula =
+                format!("=INDEX({point_range}; {best_result_row_formula}; 0)");
+
+            let best_result_time_formula =
+                format!("=INDEX({time_range}; {best_result_row_formula}; 0)");
+
+            worksheet
+                .lock()
+                .unwrap()
+                .write_with_format(
+                    last_row_index as u32,
+                    col,
+                    Formula::new(best_result_radius_formula),
+                    &cell_format,
+                )
+                .ok();
+
+            worksheet
+                .lock()
+                .unwrap()
+                .write_with_format(
+                    last_row_index as u32,
+                    col + 1,
+                    Formula::new(best_result_points_formula),
+                    &cell_format,
+                )
+                .ok();
+
+            worksheet
+                .lock()
+                .unwrap()
+                .write_with_format(
+                    last_row_index as u32,
+                    col + 3,
+                    Formula::new(best_result_time_formula),
+                    &cell_format,
+                )
+                .ok();
+
+            col += 4;
+        }
+
+        worksheet.lock().unwrap().autofit();
     }
-
-    worksheet.lock().unwrap().autofit();
 
     workbook
         .save(format!(

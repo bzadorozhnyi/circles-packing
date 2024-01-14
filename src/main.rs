@@ -17,8 +17,6 @@ mod utils;
 
 fn main() {
     let algorithm_params = [
-        (false, 1e-2),
-        (true, 1e-2),
         (false, 1e-3),
         (true, 1e-3),
         (false, 1e-4),
@@ -40,8 +38,22 @@ fn main() {
     println!("Total time (heuristic): {}", total_time_of_heuristic);
 
     let test_number = 10;
-    let (total_time_of_single_random, _) =
-        measure_time(|| random_single_case(test_number, 50, &algorithm_params, &ralgo_params));
+    let alpha_array = [2.0, 2.5, 3.0, 3.5, 4.0];
+    let q1_array = [0.8, 0.85, 0.9, 0.95, 1.0];
+    let alpha_q1_pairs = alpha_array
+        .iter()
+        .flat_map(|alpha| q1_array.iter().map(|q1| (*alpha, *q1)))
+        .collect();
+
+    let (total_time_of_single_random, _) = measure_time(|| {
+        random_single_case(
+            test_number,
+            50,
+            &algorithm_params,
+            &ralgo_params,
+            alpha_q1_pairs,
+        )
+    });
     println!(
         "Total time (single random test = {test_number}): {}",
         total_time_of_single_random
