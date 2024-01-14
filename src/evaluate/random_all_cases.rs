@@ -3,7 +3,8 @@ use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use crate::evaluate::utils::*;
 use crate::packing::{self};
-use crate::ralgo::dichotomy_step_ralgo;
+use crate::ralgo::ralgo::dichotomy_step_ralgo;
+use crate::ralgo::ralgo_params::RalgoParams;
 use crate::utils::measure_time;
 use crate::{circle::Circle, point::Point};
 use rust_xlsxwriter::{column_number_to_name, Format, Formula, Workbook};
@@ -91,7 +92,11 @@ fn get_optimal_random_arrangement(
     return optimal_circles;
 }
 
-pub fn random_all_cases(ralgo_params: &[(bool, f32)], density: f32) -> io::Result<()> {
+pub fn random_all_cases(
+    algorithm_params: &[(bool, f32)],
+    density: f32,
+    ralgo_params: &RalgoParams,
+) -> io::Result<()> {
     let rng = Arc::new(Mutex::new(StdRng::seed_from_u64(0)));
 
     let mut workbook: Workbook = Workbook::new();
@@ -99,7 +104,7 @@ pub fn random_all_cases(ralgo_params: &[(bool, f32)], density: f32) -> io::Resul
     let cell_format = Format::new().set_align(rust_xlsxwriter::FormatAlign::Center);
 
     // setup headings
-    for (col, data) in get_table_headings(ralgo_params).iter().enumerate() {
+    for (col, data) in get_table_headings(algorithm_params).iter().enumerate() {
         worksheet
             .lock()
             .unwrap()
@@ -133,10 +138,16 @@ pub fn random_all_cases(ralgo_params: &[(bool, f32)], density: f32) -> io::Resul
         let main_circle_radius = main_circle_radius * 10.0;
 
         // run dichotomy ralgo with different parameters in threads
-        for (index, (reset_step, eps)) in ralgo_params.iter().enumerate() {
+        for (index, (reset_step, eps)) in algorithm_params.iter().enumerate() {
             // get result of dichotomy algorithm
             let (ralgo_time, (new_main_circle_radius, new_circles)) = measure_time(|| {
-                dichotomy_step_ralgo(main_circle_radius, &circles, *reset_step, *eps)
+                dichotomy_step_ralgo(
+                    main_circle_radius,
+                    &circles,
+                    *reset_step,
+                    *eps,
+                    ralgo_params,
+                )
             });
             let points = calculate_points(new_main_circle_radius, jury_answer);
 
@@ -155,7 +166,7 @@ pub fn random_all_cases(ralgo_params: &[(bool, f32)], density: f32) -> io::Resul
     });
 
     let mut col: u16 = 2;
-    while col < (ralgo_params.len() * 4 + 1) as u16 {
+    while col < (algorithm_params.len() * 4 + 1) as u16 {
         // number of columns
         let column: String = column_number_to_name(col);
         worksheet

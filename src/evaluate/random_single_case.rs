@@ -1,7 +1,11 @@
 use super::utils::{calculate_points, get_input_data, get_jury_answer};
 use crate::{
-    circle::Circle, evaluate::utils::write_row_block, packing, point::Point,
-    ralgo::dichotomy_step_ralgo, utils::measure_time,
+    circle::Circle,
+    evaluate::utils::write_row_block,
+    packing,
+    point::Point,
+    ralgo::{ralgo::dichotomy_step_ralgo, ralgo_params::RalgoParams},
+    utils::measure_time,
 };
 use rand::{rngs::StdRng, Rng, SeedableRng};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
@@ -80,7 +84,8 @@ fn get_updated_main_cirlce_radius(circles: &Vec<Circle>, r: f32) -> f32 {
 pub fn random_single_case(
     test_number: usize,
     launches: usize,
-    ralgo_params: &[(bool, f32)],
+    algorithm_params: &[(bool, f32)],
+    ralgo_params: &RalgoParams,
 ) -> io::Result<()> {
     let rng = Arc::new(Mutex::new(StdRng::seed_from_u64(0)));
 
@@ -89,7 +94,7 @@ pub fn random_single_case(
     let cell_format = Format::new().set_align(rust_xlsxwriter::FormatAlign::Center);
 
     // setup headings
-    for (col, data) in get_table_headings(ralgo_params).iter().enumerate() {
+    for (col, data) in get_table_headings(algorithm_params).iter().enumerate() {
         worksheet
             .lock()
             .unwrap()
@@ -135,10 +140,16 @@ pub fn random_single_case(
             .write_with_format(launch as u32, 3, r, &cell_format)
             .ok();
 
-        for (index, (reset_step, eps)) in ralgo_params.iter().enumerate() {
+        for (index, (reset_step, eps)) in algorithm_params.iter().enumerate() {
             // get result of dichotomy algorithm
             let (ralgo_time, (new_main_circle_radius, new_circles)) = measure_time(|| {
-                dichotomy_step_ralgo(updated_main_circle_radius, &circles, *reset_step, *eps)
+                dichotomy_step_ralgo(
+                    updated_main_circle_radius,
+                    &circles,
+                    *reset_step,
+                    *eps,
+                    &ralgo_params,
+                )
             });
             let points = calculate_points(new_main_circle_radius, jury_answer);
 
@@ -162,7 +173,7 @@ pub fn random_single_case(
     };
 
     let mut col = 4_u16;
-    while col < (ralgo_params.len() * 4 + 4) as u16 {
+    while col < (algorithm_params.len() * 4 + 4) as u16 {
         let radius_column = column_number_to_name(col);
         let point_column = column_number_to_name(col + 1);
         let validation_column = column_number_to_name(col + 2);

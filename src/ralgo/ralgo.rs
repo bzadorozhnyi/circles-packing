@@ -2,6 +2,8 @@ use crate::circle;
 use crate::point;
 use nalgebra::{self};
 
+use super::ralgo_params::RalgoParams;
+
 fn concat_gradients(
     gx: &nalgebra::DVector<f32>,
     gy: &nalgebra::DVector<f32>,
@@ -192,6 +194,7 @@ pub fn dichotomy_step_ralgo(
     circles: &Vec<circle::Circle>,
     reset_step: bool,
     eps: f32,
+    ralgo_params: &RalgoParams,
 ) -> (f32, Vec<circle::Circle>) {
     let mut x = circles_to_dvector(circles, main_circle_radiuse);
     let circles_radiuses =
@@ -202,12 +205,12 @@ pub fn dichotomy_step_ralgo(
     while step_size >= 0.01 {
         let y = ralg5(
             x.clone(),
-            3.0,
+            ralgo_params.alpha,
             step_size.clone(),
-            0.9,
-            1e-6,
-            1e-7,
-            3000,
+            ralgo_params.q1,
+            ralgo_params.epsx,
+            ralgo_params.epsg,
+            ralgo_params.max_iterations,
             &circles_radiuses,
         );
 
