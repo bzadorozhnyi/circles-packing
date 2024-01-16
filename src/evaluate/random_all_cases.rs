@@ -3,7 +3,7 @@ use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use crate::evaluate::utils::*;
 use crate::packing::{self};
-use crate::ralgo::ralgo::dichotomy_step_ralgo;
+use crate::ralgo::dichotomy_step_ralgo::dichotomy_step_ralgo;
 use crate::ralgo::ralgo_params::RalgoParams;
 use crate::utils::measure_time;
 use crate::{circle::Circle, point::Point};

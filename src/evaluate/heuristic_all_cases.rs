@@ -1,6 +1,6 @@
 use crate::evaluate::utils::*;
 use crate::packing::{self, find_answer};
-use crate::ralgo::ralgo::dichotomy_step_ralgo;
+use crate::ralgo::dichotomy_step_ralgo::dichotomy_step_ralgo;
 use crate::ralgo::ralgo_params::RalgoParams;
 use crate::utils::measure_time;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};

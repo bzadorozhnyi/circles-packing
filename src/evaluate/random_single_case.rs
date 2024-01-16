@@ -4,7 +4,7 @@ use crate::{
     evaluate::utils::write_row_block,
     packing,
     point::Point,
-    ralgo::{ralgo::dichotomy_step_ralgo, ralgo_params::RalgoParams},
+    ralgo::{dichotomy_step_ralgo::dichotomy_step_ralgo, ralgo_params::RalgoParams},
     utils::measure_time,
 };
 use rand::{rngs::StdRng, Rng, SeedableRng};
