@@ -97,8 +97,8 @@ pub fn random_single_case(
     let mut workbook: Workbook = Workbook::new();
 
     for (alpha, q1) in alpha_q1_pairs {
-        println!("Generate worksheet with ralgo params = {ralgo_params:?}");
         let ralgo_params = ralgo_params.with_alpha(alpha).with_q1(q1);
+        println!("Generate worksheet with ralgo params = {ralgo_params:?}");
 
         let worksheet = Arc::new(Mutex::new(workbook.add_worksheet()));
 
