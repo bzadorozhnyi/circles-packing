@@ -27,4 +27,11 @@ impl RalgoParams {
     pub fn with_q1(&self, q1: f32) -> Self {
         RalgoParams { q1, ..*self }
     }
+
+    pub fn with_max_iterations(&self, max_iterations: usize) -> Self {
+        RalgoParams {
+            max_iterations,
+            ..*self
+        }
+    }
 }
