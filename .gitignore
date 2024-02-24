@@ -3,7 +3,7 @@ input
 output
 .vscode
 circle.png
-*.xlsx
-*.ods
 src/main.exe
 src/main.pdb
+/results
+.idea
