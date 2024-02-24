@@ -1,15 +1,15 @@
 use crate::evaluate::utils::*;
 use crate::packing::{self, find_answer};
-use crate::ralgo::dichotomy_step_ralgo::dichotomy_step_ralgo;
+use crate::ralgo::dichotomy_step_ralgo::dichotomy_step_ralgo_result_with_iterations;
 use crate::ralgo::ralgo_params::RalgoParams;
 use crate::utils::measure_time;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
-use rust_xlsxwriter::{column_number_to_name, Format, Formula, Workbook};
+use rust_xlsxwriter::{column_number_to_name, Format, Formula, Workbook, Worksheet};
 use std::sync::{Arc, Mutex};
 use std::{fs, io};
 
 fn get_table_headings(params: &[(bool, f32)]) -> Vec<String> {
-    let mut headings: Vec<String> = vec!["Test", "R", "Points", "Is valid?", "Time"]
+    let mut headings: Vec<String> = vec!["Test", "R", "Points", "Is valid?", "Iterations"]
         .iter()
         .map(|s| s.to_string())
         .collect();
@@ -23,10 +23,44 @@ fn get_table_headings(params: &[(bool, f32)]) -> Vec<String> {
     return headings;
 }
 
+pub fn write_row_block(
+    worksheet: &Arc<Mutex<&mut Worksheet>>,
+    row: u32,
+    col: u16,
+    main_circle_radius: f32,
+    is_valid: bool,
+    points: f32,
+    iterations: u32,
+    format: &Format,
+) {
+    worksheet
+        .lock()
+        .unwrap()
+        .write_with_format(row, col, main_circle_radius, &format)
+        .ok();
+    worksheet
+        .lock()
+        .unwrap()
+        .write_with_format(row, col + 1, points, &format)
+        .ok();
+    worksheet
+        .lock()
+        .unwrap()
+        .write_with_format(row, col + 2, is_valid, &format)
+        .ok();
+    worksheet
+        .lock()
+        .unwrap()
+        .write_with_format(row, col + 3, iterations, &format)
+        .ok();
+}
+
 pub fn heuristic_all_cases(
     algorithm_params: &[(bool, f32)],
     ralgo_params: &RalgoParams,
 ) -> io::Result<()> {
+    println!("{ralgo_params:?}");
+
     let mut workbook: Workbook = Workbook::new();
     let worksheet = Arc::new(Mutex::new(workbook.add_worksheet()));
     let cell_format = Format::new().set_align(rust_xlsxwriter::FormatAlign::Center);
@@ -61,7 +95,7 @@ pub fn heuristic_all_cases(
             let jury_answer = get_jury_answer(test_number);
 
             // get result of heuristic algorithm
-            let (heuristic_time, (main_circle_radius, circles)) =
+            let (_, (main_circle_radius, circles)) =
                 measure_time(|| find_answer(&mut radiuses, 100));
 
             let points = calculate_points(main_circle_radius, jury_answer);
@@ -74,22 +108,23 @@ pub fn heuristic_all_cases(
                 main_circle_radius,
                 packing::is_valid_pack(main_circle_radius, &circles),
                 points,
-                heuristic_time,
+                0,
                 &cell_format,
             );
 
             // run dichotomy ralgo with different parameters in threads
             for (index, (reset_step, eps)) in algorithm_params.iter().enumerate() {
                 // get result of dichotomy algorithm
-                let (ralgo_time, (new_main_circle_radius, new_circles)) = measure_time(|| {
-                    dichotomy_step_ralgo(
-                        main_circle_radius,
-                        &&circles,
-                        *reset_step,
-                        *eps,
-                        &ralgo_params,
-                    )
-                });
+                let ralgo_results = dichotomy_step_ralgo_result_with_iterations(
+                    main_circle_radius,
+                    &&circles,
+                    *reset_step,
+                    *eps,
+                    &ralgo_params,
+                );
+                let new_main_circle_radius = ralgo_results.main_circle_radius;
+                let new_circles = ralgo_results.circles;
+
                 let points = calculate_points(new_main_circle_radius, jury_answer);
 
                 // write dichotomy results into table
@@ -100,7 +135,7 @@ pub fn heuristic_all_cases(
                     new_main_circle_radius,
                     packing::is_valid_pack(new_main_circle_radius, &new_circles),
                     points,
-                    ralgo_time,
+                    ralgo_results.iterations,
                     &cell_format,
                 );
             }
@@ -126,7 +161,10 @@ pub fn heuristic_all_cases(
     worksheet.lock().unwrap().autofit();
 
     workbook
-        .save("./results/heuristic/result-multi-linux.xlsx")
+        .save(format!(
+            "./results/heuristic/result-multi-alpha={}-q1={}.xlsx",
+            ralgo_params.alpha, ralgo_params.q1
+        ))
         .ok();
 
     Ok(())
