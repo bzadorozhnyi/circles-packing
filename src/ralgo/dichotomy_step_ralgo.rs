@@ -8,12 +8,12 @@ use super::{
 };
 
 pub fn dichotomy_step_ralgo(
-    main_circle_radiuse: f32,
+    main_circle_radiuse: f64,
     circles: &Vec<Circle>,
     reset_step: bool,
-    eps: f32,
+    eps: f64,
     ralgo_params: &RalgoParams,
-) -> (f32, Vec<Circle>) {
+) -> (f64, Vec<Circle>) {
     let mut x = circles_to_dvector(circles, main_circle_radiuse);
     let circles_radiuses =
         nalgebra::DVector::from_vec(Vec::from_iter(circles.iter().map(|c| c.radius)));
@@ -46,10 +46,10 @@ pub fn dichotomy_step_ralgo(
 }
 
 pub fn dichotomy_step_ralgo_result_with_iterations(
-    main_circle_radiuse: f32,
+    main_circle_radiuse: f64,
     circles: &Vec<Circle>,
     reset_step: bool,
-    eps: f32,
+    eps: f64,
     ralgo_params: &RalgoParams,
 ) -> RalgoResult {
     let mut x = circles_to_dvector(circles, main_circle_radiuse);

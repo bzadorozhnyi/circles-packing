@@ -1,23 +1,23 @@
 use crate::ralgo::utils::concat_gradients;
 
 pub fn calcfg(
-    x: &nalgebra::DVector<f32>,
-    radiuses: &nalgebra::DVector<f32>,
-) -> (f32, nalgebra::DVector<f32>) {
+    x: &nalgebra::DVector<f64>,
+    radiuses: &nalgebra::DVector<f64>,
+) -> (f64, nalgebra::DVector<f64>) {
     let number_of_circles = radiuses.len();
 
     let cx = x.rows(0, number_of_circles);
     let cy = x.rows(number_of_circles, number_of_circles);
     let main_circle_radius = x[x.len() - 1];
 
-    let mut gx = nalgebra::DVector::<f32>::zeros(number_of_circles);
-    let mut gy = nalgebra::DVector::<f32>::zeros(number_of_circles);
-    let mut gr = 1_f32;
+    let mut gx = nalgebra::DVector::<f64>::zeros(number_of_circles);
+    let mut gy = nalgebra::DVector::<f64>::zeros(number_of_circles);
+    let mut gr = 1_f64;
 
     let mut f = main_circle_radius;
-    const P1: f32 = 2000.0;
-    const P2: f32 = 1000.0;
-    const EPS: f32 = 0.05;
+    const P1: f64 = 2000.0;
+    const P2: f64 = 1000.0;
+    const EPS: f64 = 1e-24;
 
     for i in 0..number_of_circles {
         let mut temp =

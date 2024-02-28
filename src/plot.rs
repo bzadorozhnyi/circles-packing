@@ -2,7 +2,7 @@ use crate::circle;
 use crate::point;
 use plotters::prelude::*;
 
-pub fn draw_plot(main_circle_radius: f32, circles: &Vec<circle::Circle>) {
+pub fn draw_plot(main_circle_radius: f64, circles: &Vec<circle::Circle>) {
     let plot_size: i32 = 1000;
     let root =
         BitMapBackend::new("circle.png", (plot_size as u32, plot_size as u32)).into_drawing_area();
@@ -25,8 +25,8 @@ pub fn draw_plot(main_circle_radius: f32, circles: &Vec<circle::Circle>) {
 
     let root = chart.plotting_area();
 
-    let convert_radius = |radius: f32| {
-        return (radius * (plot_size - 2 * 85) as f32) / (2.0 * spec_size);
+    let convert_radius = |radius: f64| {
+        return (radius * (plot_size - 2 * 85) as f64) / (2.0 * spec_size);
     };
 
     let set_circle = |c: &circle::Circle| {

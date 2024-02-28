@@ -8,7 +8,7 @@ use rust_xlsxwriter::{column_number_to_name, Format, Formula, Workbook, Workshee
 use std::sync::{Arc, Mutex};
 use std::{fs, io};
 
-fn get_table_headings(params: &[(bool, f32)]) -> Vec<String> {
+fn get_table_headings(params: &[(bool, f64)]) -> Vec<String> {
     let mut headings: Vec<String> = vec!["Test", "R", "Points", "Is valid?", "Iterations"]
         .iter()
         .map(|s| s.to_string())
@@ -27,9 +27,9 @@ pub fn write_row_block(
     worksheet: &Arc<Mutex<&mut Worksheet>>,
     row: u32,
     col: u16,
-    main_circle_radius: f32,
+    main_circle_radius: f64,
     is_valid: bool,
-    points: f32,
+    points: f64,
     iterations: u32,
     format: &Format,
 ) {
@@ -56,7 +56,7 @@ pub fn write_row_block(
 }
 
 pub fn heuristic_all_cases(
-    algorithm_params: &[(bool, f32)],
+    algorithm_params: &[(bool, f64)],
     ralgo_params: &RalgoParams,
 ) -> io::Result<()> {
     println!("{ralgo_params:?}");

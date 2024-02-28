@@ -1,13 +1,13 @@
 use crate::{circle, point};
 
 pub fn concat_gradients(
-    gx: &nalgebra::DVector<f32>,
-    gy: &nalgebra::DVector<f32>,
-    gr: f32,
-) -> nalgebra::DVector<f32> {
+    gx: &nalgebra::DVector<f64>,
+    gy: &nalgebra::DVector<f64>,
+    gr: f64,
+) -> nalgebra::DVector<f64> {
     let circles_number = gx.len();
 
-    let mut gradient = nalgebra::DVector::<f32>::zeros(2 * circles_number + 1);
+    let mut gradient = nalgebra::DVector::<f64>::zeros(2 * circles_number + 1);
     gradient.rows_mut(0, circles_number).copy_from(&gx);
     gradient
         .rows_mut(circles_number, circles_number)
@@ -19,9 +19,9 @@ pub fn concat_gradients(
 
 pub fn circles_to_dvector(
     circles: &Vec<circle::Circle>,
-    main_circle_radiuse: f32,
-) -> nalgebra::DVector<f32> {
-    let data: Vec<f32> = ([
+    main_circle_radiuse: f64,
+) -> nalgebra::DVector<f64> {
+    let data: Vec<f64> = ([
         Vec::from_iter(
             circles
                 .iter()
@@ -39,9 +39,9 @@ pub fn circles_to_dvector(
 }
 
 pub fn dvector_to_answer(
-    x: &nalgebra::DVector<f32>,
-    circles_radiuses: &nalgebra::DVector<f32>,
-) -> (f32, Vec<circle::Circle>) {
+    x: &nalgebra::DVector<f64>,
+    circles_radiuses: &nalgebra::DVector<f64>,
+) -> (f64, Vec<circle::Circle>) {
     let main_circle_radiuse = x[x.len() - 1];
     let mut circles: Vec<circle::Circle> = Vec::from_iter(
         circles_radiuses
@@ -59,6 +59,6 @@ pub fn dvector_to_answer(
     return (main_circle_radiuse, circles);
 }
 
-pub fn get_last(d: &nalgebra::DVector<f32>) -> f32 {
+pub fn get_last(d: &nalgebra::DVector<f64>) -> f64 {
     return d[d.len() - 1];
 }

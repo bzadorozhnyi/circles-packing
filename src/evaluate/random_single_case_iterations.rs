@@ -25,7 +25,7 @@ const HEADING_NAMES: [&str; 6] = [
     "calcfg_calls",
 ];
 
-fn get_table_headings(params: &[(bool, f32)]) -> Vec<String> {
+fn get_table_headings(params: &[(bool, f64)]) -> Vec<String> {
     let mut headings: Vec<String> = vec!["Launch", "R_gen", "R", "r"]
         .iter()
         .map(|s| s.to_string())
@@ -41,10 +41,10 @@ fn get_table_headings(params: &[(bool, f32)]) -> Vec<String> {
 }
 
 fn generate_random_arrangement(
-    main_circle_radius: f32,
+    main_circle_radius: f64,
     rng: &Arc<Mutex<StdRng>>,
-    radiuses: &Vec<f32>,
-) -> (Vec<Circle>, f32) {
+    radiuses: &Vec<f64>,
+) -> (Vec<Circle>, f64) {
     let mut circles = vec![];
     for i in 0..radiuses.len() {
         let mut rng = rng.lock().unwrap();
@@ -64,7 +64,7 @@ fn generate_random_arrangement(
         circles.push(Circle::new(radiuses[i], Point { x, y }))
     }
 
-    let mut r = f32::MAX;
+    let mut r = f64::MAX;
 
     for i in 0..circles.len() {
         let center_i = circles[i].center.unwrap();
@@ -82,7 +82,7 @@ fn generate_random_arrangement(
     return (circles, r);
 }
 
-fn get_updated_main_cirlce_radius(circles: &Vec<Circle>, r: f32) -> f32 {
+fn get_updated_main_cirlce_radius(circles: &Vec<Circle>, r: f64) -> f64 {
     return circles
         .iter()
         .map(|c| (c.center.unwrap().x.powi(2) + c.center.unwrap().y.powi(2)).sqrt() + r)
@@ -94,9 +94,9 @@ pub fn write_row_block(
     worksheet: &Arc<Mutex<&mut Worksheet>>,
     row: u32,
     col: u16,
-    main_circle_radius: f32,
+    main_circle_radius: f64,
     is_valid: bool,
-    points: f32,
+    points: f64,
     ralgo_calls: u32,
     iterations: u32,
     calcfg_calls: u32,
@@ -137,15 +137,15 @@ pub fn write_row_block(
 pub fn random_single_case_iterations(
     test_number: usize,
     launches: usize,
-    algorithm_params: &[(bool, f32)],
+    algorithm_params: &[(bool, f64)],
     ralgo_params: &RalgoParams,
-    alpha_q1_pairs: Vec<(f32, f32)>,
+    alpha_q1_pairs: Vec<(f64, f64)>,
 ) -> io::Result<()> {
     let rng = Arc::new(Mutex::new(StdRng::seed_from_u64(0)));
     let (_, radiuses) = get_input_data(test_number as u32);
     let jury_answer = get_jury_answer(test_number as u32);
 
-    let gen_main_circle_radius: f32 = radiuses.iter().map(|r| r.powi(2)).sum::<f32>().sqrt() * 1.2;
+    let gen_main_circle_radius: f64 = radiuses.iter().map(|r| r.powi(2)).sum::<f64>().sqrt() * 1.2;
 
     let mut workbook: Workbook = Workbook::new();
 
