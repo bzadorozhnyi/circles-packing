@@ -30,7 +30,7 @@ pub fn write_row_block(
     main_circle_radius: f64,
     is_valid: bool,
     points: f64,
-    iterations: u32,
+    avg_iterations: f32,
     format: &Format,
 ) {
     worksheet
@@ -51,7 +51,7 @@ pub fn write_row_block(
     worksheet
         .lock()
         .unwrap()
-        .write_with_format(row, col + 3, iterations, &format)
+        .write_with_format(row, col + 3, avg_iterations, &format)
         .ok();
 }
 
@@ -108,7 +108,7 @@ pub fn heuristic_all_cases(
                 main_circle_radius,
                 packing::is_valid_pack(main_circle_radius, &circles),
                 points,
-                0,
+                0.0,
                 &cell_format,
             );
 
@@ -135,7 +135,7 @@ pub fn heuristic_all_cases(
                     new_main_circle_radius,
                     packing::is_valid_pack(new_main_circle_radius, &new_circles),
                     points,
-                    ralgo_results.iterations,
+                    (ralgo_results.iterations as f32) / (ralgo_results.ralgo_calls as f32),
                     &cell_format,
                 );
             }
