@@ -25,8 +25,8 @@ fn main() {
         .flat_map(|eps| variants_array.iter().map(|variant| (*variant, *eps)))
         .collect::<Vec<(bool, f64)>>();
 
-    let ralgo_params = RalgoParams::default().with_max_iterations(5000);
-    let alpha_array = [1.5, 2.0, 2.5, 3.0, 3.5, 4.0];
+    let ralgo_params = RalgoParams::default().with_max_iterations(50_000);
+    let alpha_array = [1.5, 2.0, 2.5];
     let q1_array = [0.8, 0.85, 0.9, 0.95, 1.0];
     let alpha_q1_pairs = alpha_array
         .iter()
