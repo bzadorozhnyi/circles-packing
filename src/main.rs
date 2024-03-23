@@ -1,6 +1,7 @@
 use crate::{
     evaluate::{
         heuristic_all_cases::heuristic_all_cases, heuristic_single_case::heuristic_single_case,
+        heuristic_single_case_console::heuristic_single_case_console,
         random_all_cases::random_all_cases,
         random_single_case_iterations::random_single_case_iterations,
     },
@@ -81,37 +82,51 @@ fn test_packomania_circles(test_number: u32) {
     }
 }
 
+fn get_packomania_answer(test_number: u32) {
+    use std::{
+        fs::File,
+        io::{BufRead, BufReader},
+    };
+
+    let file_name = format!("./packomania/{test_number}.txt");
+    let file = File::open(file_name).expect("Failed to open file");
+    let reader = BufReader::new(file);
+
+    if let Some(Ok(first_line)) = reader.lines().next() {
+        println!("{}", first_line);
+    }
+}
+
 fn main() {
-    test_packomania_circles(9);
-    // let eps_array = [0.0];
-    // let variants_array = [false, true];
-    // let algorithm_params = eps_array
-    //     .iter()
-    //     .flat_map(|eps| variants_array.iter().map(|variant| (*variant, *eps)))
-    //     .collect::<Vec<(bool, f64)>>();
+    let eps_array = [0.0];
+    let variants_array = [false, true];
+    let algorithm_params = eps_array
+        .iter()
+        .flat_map(|eps| variants_array.iter().map(|variant| (*variant, *eps)))
+        .collect::<Vec<(bool, f64)>>();
 
-    // let ralgo_params = RalgoParams::default().with_max_iterations(50_000);
-    // let alpha_array = [1.5, 2.0, 2.5];
-    // let q1_array = [0.8, 0.85, 0.9, 0.95, 1.0];
-    // let alpha_q1_pairs = alpha_array
-    //     .iter()
-    //     .flat_map(|alpha| q1_array.iter().map(|q1| (*alpha, *q1)))
-    //     .collect::<Vec<(f64, f64)>>();
+    let alpha_array = [1.5, 2.0, 2.5];
+    let q1_array = [0.8, 0.85, 0.9, 0.95, 1.0];
+    let alpha_q1_pairs = alpha_array
+        .iter()
+        .flat_map(|alpha| q1_array.iter().map(|q1| (*alpha, *q1)))
+        .collect::<Vec<(f64, f64)>>();
 
-    // // let (total_time_of_random, _) =
-    // //     measure_time(|| random_all_cases(&algorithm_params, 0.7403, &ralgo_params));
-    // // println!("Total time (random): {}", total_time_of_random);
+    let test_number = 8;
 
-    // for (alpha, q1) in &alpha_q1_pairs {
-    //     println!("alpha = {alpha}, q1 = {q1}");
-    //     let ralgo_params = ralgo_params.with_alpha(*alpha).with_q1(*q1);
-    //     let (total_time_of_heuristic, _) =
-    //         measure_time(|| heuristic_all_cases(&algorithm_params, &ralgo_params));
-    //     println!(
-    //         "Total time (heuristic): {}, alpha = {}, q1 = {}",
-    //         total_time_of_heuristic, alpha, q1
-    //     );
-    // }
+    let (main_circle_radiuse, mut circles) =
+        heuristic_single_case_console(test_number, &algorithm_params, &alpha_q1_pairs);
 
-    // read_and_gen_tables::read_and_gen_heuristic(&alpha_q1_pairs).unwrap();
+    circles.sort_by(|a, b| a.radius.partial_cmp(&b.radius).unwrap());
+
+    get_packomania_answer(test_number);
+    println!("{main_circle_radiuse:.15}");
+    for circle in circles {
+        println!(
+            "{} {:.15} {:.15}",
+            circle.radius,
+            circle.center.unwrap().x,
+            circle.center.unwrap().y
+        );
+    }
 }
