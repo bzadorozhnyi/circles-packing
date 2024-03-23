@@ -17,41 +17,55 @@ mod ralgo;
 mod read_and_gen_tables;
 mod utils;
 
-fn test_5_circles() {
-    let radiuses = [1.0, 2.0, 3.0, 4.0, 5.0];
-    let normalized_coordinates = vec![
-        (
-            0.713892571232417631221701695511,
-            -0.344155848273873411585688583918,
-        ),
-        (
-            -0.681865978095046812604637384133,
-            0.164440032623038188646662065278,
-        ),
-        (
-            0.646305330827477461038211041777,
-            0.163715852151450969802426641891,
-        ),
-        (
-            -0.025724911869879508301792021048,
-            0.555028729847845797365923205380,
-        ),
-        (
-            -0.001705619441145294635938306110,
-            -0.444527439510283851885140364387,
-        ),
-    ];
-    let r = 9.001397746050;
+pub fn get_input_data(test_number: u32) -> (f64, Vec<f64>, Vec<(f64, f64)>) {
+    use std::str::FromStr;
+    use std::{
+        fs::File,
+        io::{BufRead, BufReader},
+    };
+
+    let file_name = format!("./packomania/{test_number}.txt");
+    let file = File::open(file_name).expect("Failed to open file");
+    let reader = BufReader::new(file);
+
+    let mut lines = reader.lines();
+    let first_line = lines.next().expect("Empty file").unwrap();
+    let main_radius: f64 = first_line
+        .trim()
+        .parse()
+        .expect("Invalid main circle radius");
+
+    let mut radiuses: Vec<f64> = Vec::new();
+    let mut normalized_coordinates: Vec<(f64, f64)> = Vec::new();
+    for line in lines {
+        let input_line = line.expect("Failed to read line");
+        let mut iter = input_line.split_whitespace();
+
+        let radius = f64::from_str(iter.next().unwrap()).unwrap();
+        let x: f64 = f64::from_str(iter.next().unwrap()).unwrap();
+        let y = f64::from_str(iter.next().unwrap()).unwrap();
+
+        radiuses.push(radius);
+        normalized_coordinates.push((x, y));
+    }
+
+    return (main_radius, radiuses, normalized_coordinates);
+}
+
+fn test_packomania_circles(test_number: u32) {
+    let (main_radius, radiuses, normalized_coordinates) = get_input_data(test_number);
 
     let coordinates: Vec<(f64, f64)> = normalized_coordinates
         .iter()
-        .map(|(x, y)| (x * r, y * r))
+        .map(|(x, y)| (x * main_radius, y * main_radius))
         .collect();
 
     for i in 0..5 {
         let (x, y) = coordinates[i];
-        let temp = x.powi(2) + y.powi(2) - (r - radiuses[i]).powi(2);
-        println!("Circle: i = {}, {temp:1.e}", i + 1);
+        let temp = x.powi(2) + y.powi(2) - (main_radius - radiuses[i]).powi(2);
+        if temp > 0.0 {
+            println!("Circle: i = {}, {temp:1.e}", i + 1);
+        }
     }
 
     for i in 0..5 {
@@ -60,13 +74,15 @@ fn test_5_circles() {
             let (xj, yj) = coordinates[j];
 
             let temp = -(xi - xj).powi(2) - (yi - yj).powi(2) + (radiuses[i] + radiuses[j]).powi(2);
-            println!("Circles: i = {}, j = {}, {temp:1.e}", i + 1, j + 1);
+            if temp > 0.0 {
+                println!("Circles: i = {}, j = {}, {temp:1.e}", i + 1, j + 1);
+            }
         }
     }
 }
 
 fn main() {
-    test_5_circles();
+    test_packomania_circles(9);
     // let eps_array = [0.0];
     // let variants_array = [false, true];
     // let algorithm_params = eps_array
