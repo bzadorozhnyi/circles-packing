@@ -42,7 +42,7 @@ pub fn get_input_data(test_number: u32) -> (f64, Vec<f64>, Vec<(f64, f64)>) {
         let mut iter = input_line.split_whitespace();
 
         let radius = f64::from_str(iter.next().unwrap()).unwrap();
-        let x: f64 = f64::from_str(iter.next().unwrap()).unwrap();
+        let x = f64::from_str(iter.next().unwrap()).unwrap();
         let y = f64::from_str(iter.next().unwrap()).unwrap();
 
         radiuses.push(radius);
