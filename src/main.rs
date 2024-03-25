@@ -112,7 +112,7 @@ fn main() {
         .flat_map(|alpha| q1_array.iter().map(|q1| (*alpha, *q1)))
         .collect::<Vec<(f64, f64)>>();
 
-    let test_number = 8;
+    let test_number = 5;
 
     let (main_circle_radiuse, mut circles) =
         heuristic_single_case_console(test_number, &algorithm_params, &alpha_q1_pairs);
