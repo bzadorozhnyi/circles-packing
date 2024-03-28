@@ -6,12 +6,14 @@ use rust_xlsxwriter::{
     ChartType, Color, Format, Workbook, Worksheet,
 };
 
+use crate::utils::FloatType;
+
 #[derive(Clone, Copy, Debug)]
 struct BlockData {
-    pub r_start: f64,
-    pub r: f64,
-    pub circle_radius: f64, // R
-    pub points: f64,
+    pub r_start: FloatType,
+    pub r: FloatType,
+    pub circle_radius: FloatType, // R
+    pub points: FloatType,
     pub is_valid_packing: bool,
     pub ralgo_calls: u32,
     pub iterations: u32,
@@ -20,10 +22,10 @@ struct BlockData {
 
 impl BlockData {
     pub fn new(
-        r_start: f64,
-        r: f64,
-        circle_radius: f64,
-        points: f64,
+        r_start: FloatType,
+        r: FloatType,
+        circle_radius: FloatType,
+        points: FloatType,
         is_valid_packing: bool,
         ralgo_calls: u32,
         iterations: u32,
@@ -112,7 +114,7 @@ fn add_chart_line(
 pub fn read_and_gen_random_single_case_iterations(
     test_number: usize,
     variants_array: &[bool],
-    eps_array: &[f64],
+    eps_array: &[FloatType],
 ) -> Result<(), Error> {
     let start_column = 4;
     let number_of_launches = 50;
@@ -134,9 +136,9 @@ pub fn read_and_gen_random_single_case_iterations(
         worksheet: &mut Worksheet,
         row: u32,
         col: u16,
-        alpha: f64,
-        q1: f64,
-        eps: f64,
+        alpha: FloatType,
+        q1: FloatType,
+        eps: FloatType,
         result: &BlockData,
         cell_format: &Format,
     ) {
@@ -198,7 +200,7 @@ pub fn read_and_gen_random_single_case_iterations(
             .write_with_format(
                 row,
                 col + 11,
-                (result.calcfg_calls as f64) / (result.iterations as f64),
+                (result.calcfg_calls as FloatType) / (result.iterations as FloatType),
                 &cell_format.clone().set_num_format("0.00"),
             )
             .ok();
@@ -207,7 +209,7 @@ pub fn read_and_gen_random_single_case_iterations(
             .write_with_format(
                 row,
                 col + 12,
-                (result.iterations as f64) / (result.ralgo_calls as f64),
+                (result.iterations as FloatType) / (result.ralgo_calls as FloatType),
                 &cell_format.clone().set_num_format("0.00"),
             )
             .ok();
@@ -261,7 +263,7 @@ pub fn read_and_gen_random_single_case_iterations(
             .ok();
     }
 
-    fn get_alpha_q1(sheet_name: &String) -> Option<(f64, f64)> {
+    fn get_alpha_q1(sheet_name: &String) -> Option<(FloatType, FloatType)> {
         let pattern = r#"alpha = (\d.*), q1 = (\d.*)"#;
         let regex = Regex::new(pattern).unwrap();
 
@@ -269,7 +271,7 @@ pub fn read_and_gen_random_single_case_iterations(
             let alpha = captures.get(1).unwrap().as_str();
             let q1 = captures.get(2).unwrap().as_str();
 
-            return Some((alpha.parse::<f64>().unwrap(), q1.parse::<f64>().unwrap()));
+            return Some((alpha.parse::<FloatType>().unwrap(), q1.parse::<FloatType>().unwrap()));
         } else {
             None
         }
@@ -313,18 +315,18 @@ pub fn read_and_gen_random_single_case_iterations(
                         start_column + block_index * block_size + eps_index * 2 * block_size;
                     let mut data: Vec<BlockData> = vec![];
                     for row in 1..=number_of_launches {
-                        let r_start = range.get((row, 2)).unwrap().get_float().unwrap() as f64;
-                        let r = range.get((row, 3)).unwrap().get_float().unwrap() as f64;
+                        let r_start = range.get((row, 2)).unwrap().get_float().unwrap() as FloatType;
+                        let r = range.get((row, 3)).unwrap().get_float().unwrap() as FloatType;
                         let circle_radius = range
                             .get((row, current_block_first_column))
                             .unwrap()
                             .get_float()
-                            .unwrap() as f64;
+                            .unwrap() as FloatType;
                         let points = range
                             .get((row, current_block_first_column + 1))
                             .unwrap()
                             .get_float()
-                            .unwrap() as f64;
+                            .unwrap() as FloatType;
                         let is_valid_packing = range
                             .get((row, current_block_first_column + 2))
                             .unwrap()
@@ -566,7 +568,7 @@ pub fn read_and_gen_random_single_case_iterations(
     Ok(())
 }
 
-pub fn read_and_gen_heuristic(alpha_q1_pairs: &Vec<(f64, f64)>) -> Result<(), Error> {
+pub fn read_and_gen_heuristic(alpha_q1_pairs: &Vec<(FloatType, FloatType)>) -> Result<(), Error> {
     let mut output_workbook = Workbook::new();
     let output_worksheet = output_workbook.add_worksheet();
 

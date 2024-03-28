@@ -4,15 +4,15 @@ use crate::{
     ralgo::{
         dichotomy_step_ralgo::dichotomy_step_ralgo_result_with_iterations,
         ralgo_params::RalgoParams,
-    },
+    }, utils::FloatType,
 };
 
 pub fn heuristic_single_case_console(
     test_number: u32,
-    algorithm_params: &[(bool, f64)],
-    alpha_q1_pairs: &Vec<(f64, f64)>,
-) -> (f64, Vec<Circle>) {
-    let mut radiuses = (1..=test_number).map(|x| x as f64).collect::<Vec<_>>();
+    algorithm_params: &[(bool, FloatType)],
+    alpha_q1_pairs: &Vec<(FloatType, FloatType)>,
+) -> (FloatType, Vec<Circle>) {
+    let mut radiuses = (1..=test_number).map(|x| x as FloatType).collect::<Vec<_>>();
     let (main_circle_radius, circles) = find_answer(&mut radiuses, 10000);
 
     let mut answer_main_circle_radius = main_circle_radius;

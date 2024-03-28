@@ -5,7 +5,7 @@ use crate::{
     packing,
     point::Point,
     ralgo::{dichotomy_step_ralgo::dichotomy_step_ralgo, ralgo_params::RalgoParams},
-    utils::measure_time,
+    utils::{measure_time, FloatType},
 };
 use rand::{rngs::StdRng, Rng, SeedableRng};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
@@ -15,7 +15,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-fn get_table_headings(params: &[(bool, f64)]) -> Vec<String> {
+fn get_table_headings(params: &[(bool, FloatType)]) -> Vec<String> {
     let mut headings: Vec<String> = vec!["Launch", "R_gen", "R", "r"]
         .iter()
         .map(|s| s.to_string())
@@ -32,10 +32,10 @@ fn get_table_headings(params: &[(bool, f64)]) -> Vec<String> {
 }
 
 fn generate_random_arrangement(
-    main_circle_radius: f64,
+    main_circle_radius: FloatType,
     rng: &Arc<Mutex<StdRng>>,
-    radiuses: &Vec<f64>,
-) -> (Vec<Circle>, f64) {
+    radiuses: &Vec<FloatType>,
+) -> (Vec<Circle>, FloatType) {
     let mut circles = vec![];
     for i in 0..radiuses.len() {
         let mut rng = rng.lock().unwrap();
@@ -55,7 +55,7 @@ fn generate_random_arrangement(
         circles.push(Circle::new(radiuses[i], Point { x, y }))
     }
 
-    let mut r = f64::MAX;
+    let mut r = FloatType::MAX;
 
     for i in 0..circles.len() {
         let center_i = circles[i].center.unwrap();
@@ -73,7 +73,7 @@ fn generate_random_arrangement(
     return (circles, r);
 }
 
-fn get_updated_main_cirlce_radius(circles: &Vec<Circle>, r: f64) -> f64 {
+fn get_updated_main_cirlce_radius(circles: &Vec<Circle>, r: FloatType) -> FloatType {
     return circles
         .iter()
         .map(|c| (c.center.unwrap().x.powi(2) + c.center.unwrap().y.powi(2)).sqrt() + r)
@@ -84,15 +84,15 @@ fn get_updated_main_cirlce_radius(circles: &Vec<Circle>, r: f64) -> f64 {
 pub fn random_single_case(
     test_number: usize,
     launches: usize,
-    algorithm_params: &[(bool, f64)],
+    algorithm_params: &[(bool, FloatType)],
     ralgo_params: &RalgoParams,
-    alpha_q1_pairs: Vec<(f64, f64)>,
+    alpha_q1_pairs: Vec<(FloatType, FloatType)>,
 ) -> io::Result<()> {
     let rng = Arc::new(Mutex::new(StdRng::seed_from_u64(0)));
     let (_, radiuses) = get_input_data(test_number as u32);
     let jury_answer = get_jury_answer(test_number as u32);
 
-    let gen_main_circle_radius: f64 = radiuses.iter().map(|r| r.powi(2)).sum::<f64>().sqrt() * 1.2;
+    let gen_main_circle_radius: FloatType = radiuses.iter().map(|r| r.powi(2)).sum::<FloatType>().sqrt() * 1.2;
 
     let mut workbook: Workbook = Workbook::new();
 

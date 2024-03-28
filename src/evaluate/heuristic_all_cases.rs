@@ -2,13 +2,13 @@ use crate::evaluate::utils::*;
 use crate::packing::{self, find_answer};
 use crate::ralgo::dichotomy_step_ralgo::dichotomy_step_ralgo_result_with_iterations;
 use crate::ralgo::ralgo_params::RalgoParams;
-use crate::utils::measure_time;
+use crate::utils::{measure_time, FloatType};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use rust_xlsxwriter::{column_number_to_name, Format, Formula, Workbook, Worksheet};
 use std::sync::{Arc, Mutex};
 use std::{fs, io};
 
-fn get_table_headings(params: &[(bool, f64)]) -> Vec<String> {
+fn get_table_headings(params: &[(bool, FloatType)]) -> Vec<String> {
     let mut headings: Vec<String> = vec!["Test", "R", "Points", "Is valid?", "Iterations"]
         .iter()
         .map(|s| s.to_string())
@@ -27,9 +27,9 @@ pub fn write_row_block(
     worksheet: &Arc<Mutex<&mut Worksheet>>,
     row: u32,
     col: u16,
-    main_circle_radius: f64,
+    main_circle_radius: FloatType,
     is_valid: bool,
-    points: f64,
+    points: FloatType,
     avg_iterations: f32,
     format: &Format,
 ) {
@@ -56,7 +56,7 @@ pub fn write_row_block(
 }
 
 pub fn heuristic_all_cases(
-    algorithm_params: &[(bool, f64)],
+    algorithm_params: &[(bool, FloatType)],
     ralgo_params: &RalgoParams,
 ) -> io::Result<()> {
     println!("{ralgo_params:?}");

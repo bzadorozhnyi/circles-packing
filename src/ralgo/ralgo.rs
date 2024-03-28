@@ -1,18 +1,20 @@
 use nalgebra::{self};
 
+use crate::utils::FloatType;
+
 use super::calcfg::calcfg;
 
 pub fn ralg5(
-    mut x: nalgebra::DVector<f64>,
-    alpha: f64,
-    mut h: f64,
-    q1: f64,
-    epsx: f64,
-    epsg: f64,
+    mut x: nalgebra::DVector<FloatType>,
+    alpha: FloatType,
+    mut h: FloatType,
+    q1: FloatType,
+    epsx: FloatType,
+    epsg: FloatType,
     max_iterations: usize,
-    radiuses: &nalgebra::DVector<f64>,
-) -> nalgebra::DVector<f64> {
-    let mut b_matrix = nalgebra::DMatrix::<f64>::identity(x.len(), x.len());
+    radiuses: &nalgebra::DVector<FloatType>,
+) -> nalgebra::DVector<FloatType> {
+    let mut b_matrix = nalgebra::DMatrix::<FloatType>::identity(x.len(), x.len());
 
     let mut result_x = x.clone();
     let (mut result_f, mut g0) = calcfg(&result_x, radiuses);
@@ -22,13 +24,13 @@ pub fn ralg5(
     }
 
     for _ in 0..max_iterations {
-        let mut g1: nalgebra::DVector<f64> = b_matrix.tr_mul(&g0);
+        let mut g1: nalgebra::DVector<FloatType> = b_matrix.tr_mul(&g0);
 
-        let dx: nalgebra::DVector<f64> = (&b_matrix * &g1) / g1.norm();
+        let dx: nalgebra::DVector<FloatType> = (&b_matrix * &g1) / g1.norm();
         let dx_norm = dx.norm();
 
-        let mut f;
-        let (mut d, mut ls, mut ddx) = (1.0_f64, 0_u32, 0.0_f64);
+        let mut f: FloatType;
+        let (mut d, mut ls, mut ddx) = (1.0 as FloatType, 0_u32, 0.0 as FloatType);
         while d > 0.0 {
             x -= h * &dx;
             ddx += h * dx_norm;
@@ -73,16 +75,16 @@ pub fn ralg5(
 }
 
 pub fn ralgo_result_with_iterations(
-    mut x: nalgebra::DVector<f64>,
-    alpha: f64,
-    mut h: f64,
-    q1: f64,
-    epsx: f64,
-    epsg: f64,
+    mut x: nalgebra::DVector<FloatType>,
+    alpha: FloatType,
+    mut h: FloatType,
+    q1: FloatType,
+    epsx: FloatType,
+    epsg: FloatType,
     max_iterations: usize,
-    radiuses: &nalgebra::DVector<f64>,
-) -> (u32, u32, nalgebra::DVector<f64>) {
-    let mut b_matrix = nalgebra::DMatrix::<f64>::identity(x.len(), x.len());
+    radiuses: &nalgebra::DVector<FloatType>,
+) -> (u32, u32, nalgebra::DVector<FloatType>) {
+    let mut b_matrix = nalgebra::DMatrix::<FloatType>::identity(x.len(), x.len());
 
     let mut result_x = x.clone();
     let (mut result_f, mut g0) = calcfg(&result_x, radiuses);
@@ -93,13 +95,13 @@ pub fn ralgo_result_with_iterations(
     }
 
     for iter in 0..max_iterations as u32 {
-        let mut g1: nalgebra::DVector<f64> = b_matrix.tr_mul(&g0);
+        let mut g1: nalgebra::DVector<FloatType> = b_matrix.tr_mul(&g0);
 
-        let dx: nalgebra::DVector<f64> = (&b_matrix * &g1) / g1.norm();
+        let dx: nalgebra::DVector<FloatType> = (&b_matrix * &g1) / g1.norm();
         let dx_norm = dx.norm();
 
         let mut f;
-        let (mut d, mut ls, mut ddx) = (1.0_f64, 0_u32, 0.0_f64);
+        let (mut d, mut ls, mut ddx) = (1.0 as FloatType, 0_u32, 0.0 as FloatType);
         while d > 0.0 {
             x -= h * &dx;
             ddx += h * dx_norm;

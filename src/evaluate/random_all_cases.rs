@@ -5,13 +5,13 @@ use crate::evaluate::utils::*;
 use crate::packing::{self};
 use crate::ralgo::dichotomy_step_ralgo::dichotomy_step_ralgo;
 use crate::ralgo::ralgo_params::RalgoParams;
-use crate::utils::measure_time;
+use crate::utils::{measure_time, FloatType};
 use crate::{circle::Circle, point::Point};
 use rust_xlsxwriter::{column_number_to_name, Format, Formula, Workbook};
 use std::sync::{Arc, Mutex};
 use std::{fs, io};
 
-fn get_table_headings(params: &[(bool, f64)]) -> Vec<String> {
+fn get_table_headings(params: &[(bool, FloatType)]) -> Vec<String> {
     let mut headings: Vec<String> = vec!["Test".to_string()];
     let heading_names = ["R", "Points", "Is valid?", "Time"];
     for (reset, eps) in params {
@@ -25,10 +25,10 @@ fn get_table_headings(params: &[(bool, f64)]) -> Vec<String> {
 }
 
 fn generate_random_arrangement(
-    main_circle_radius: f64,
+    main_circle_radius: FloatType,
     rng: &Arc<Mutex<StdRng>>,
-    radiuses: &Vec<f64>,
-) -> (Vec<Circle>, f64) {
+    radiuses: &Vec<FloatType>,
+) -> (Vec<Circle>, FloatType) {
     let mut circles = vec![];
     for i in 0..radiuses.len() {
         let mut rng = rng.lock().unwrap();
@@ -70,8 +70,8 @@ fn generate_random_arrangement(
 fn get_optimal_random_arrangement(
     rng: &Arc<Mutex<StdRng>>,
     launches_number: usize,
-    main_circle_radius: f64,
-    radiuses: &Vec<f64>,
+    main_circle_radius: FloatType,
+    radiuses: &Vec<FloatType>,
 ) -> Vec<Circle> {
     let max_radius = *(radiuses
         .iter()
@@ -93,8 +93,8 @@ fn get_optimal_random_arrangement(
 }
 
 pub fn random_all_cases(
-    algorithm_params: &[(bool, f64)],
-    density: f64,
+    algorithm_params: &[(bool, FloatType)],
+    density: FloatType,
     ralgo_params: &RalgoParams,
 ) -> io::Result<()> {
     let rng = Arc::new(Mutex::new(StdRng::seed_from_u64(0)));
@@ -132,8 +132,8 @@ pub fn random_all_cases(
         let jury_answer = get_jury_answer(test_number);
 
         // generate start values
-        let main_circle_radius: f64 =
-            (radiuses.iter().map(|r| r.powi(2)).sum::<f64>() / density).sqrt();
+        let main_circle_radius: FloatType =
+            (radiuses.iter().map(|r| r.powi(2)).sum::<FloatType>() / density).sqrt();
         let circles = get_optimal_random_arrangement(&rng, 700, main_circle_radius, &radiuses);
         let main_circle_radius = main_circle_radius * 10.0;
 

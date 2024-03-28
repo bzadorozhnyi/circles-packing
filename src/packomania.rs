@@ -1,9 +1,9 @@
-use crate::evaluate::{
+use crate::{evaluate::{
     heuristic_single_case_console::heuristic_single_case_console,
     random_single_case_console::random_single_case_console,
-};
+}, utils::FloatType};
 
-fn get_input_data(test_number: u32) -> (f64, Vec<f64>, Vec<(f64, f64)>) {
+fn get_input_data(test_number: u32) -> (FloatType, Vec<FloatType>, Vec<(FloatType, FloatType)>) {
     use std::str::FromStr;
     use std::{
         fs::File,
@@ -16,20 +16,20 @@ fn get_input_data(test_number: u32) -> (f64, Vec<f64>, Vec<(f64, f64)>) {
 
     let mut lines = reader.lines();
     let first_line = lines.next().expect("Empty file").unwrap();
-    let main_radius: f64 = first_line
+    let main_radius: FloatType = first_line
         .trim()
         .parse()
         .expect("Invalid main circle radius");
 
-    let mut radiuses: Vec<f64> = Vec::new();
-    let mut normalized_coordinates: Vec<(f64, f64)> = Vec::new();
+    let mut radiuses: Vec<FloatType> = Vec::new();
+    let mut normalized_coordinates: Vec<(FloatType, FloatType)> = Vec::new();
     for line in lines {
         let input_line = line.expect("Failed to read line");
         let mut iter = input_line.split_whitespace();
 
-        let radius = f64::from_str(iter.next().unwrap()).unwrap();
-        let x = f64::from_str(iter.next().unwrap()).unwrap();
-        let y = f64::from_str(iter.next().unwrap()).unwrap();
+        let radius = FloatType::from_str(iter.next().unwrap()).unwrap();
+        let x = FloatType::from_str(iter.next().unwrap()).unwrap();
+        let y = FloatType::from_str(iter.next().unwrap()).unwrap();
 
         radiuses.push(radius);
         normalized_coordinates.push((x, y));
@@ -58,7 +58,7 @@ fn get_packomania_answer(test_number: u32) -> String {
 pub fn test_packomania_circles(test_number: u32) {
     let (main_radius, radiuses, normalized_coordinates) = get_input_data(test_number);
 
-    let coordinates: Vec<(f64, f64)> = normalized_coordinates
+    let coordinates: Vec<(FloatType, FloatType)> = normalized_coordinates
         .iter()
         .map(|(x, y)| (x * main_radius, y * main_radius))
         .collect();
@@ -105,14 +105,14 @@ pub fn find_best_heuristic(test_number: u32) {
     let alpha_q1_pairs = alpha_array
         .iter()
         .flat_map(|alpha| q1_array.iter().map(|q1| (*alpha, *q1)))
-        .collect::<Vec<(f64, f64)>>();
+        .collect::<Vec<(FloatType, FloatType)>>();
 
     for (index, variant) in [false, true].iter().enumerate() {
         let eps_array = [1e-5, 0.0];
         let algorithm_params = eps_array
             .iter()
             .map(|eps| (*variant, *eps))
-            .collect::<Vec<(bool, f64)>>();
+            .collect::<Vec<(bool, FloatType)>>();
 
         let (main_circle_radiuse, mut circles) =
             heuristic_single_case_console(test_number, &algorithm_params, &alpha_q1_pairs);
@@ -147,14 +147,14 @@ pub fn find_best_random(test_number: u32) {
     let alpha_q1_pairs = alpha_array
         .iter()
         .flat_map(|alpha| q1_array.iter().map(|q1| (*alpha, *q1)))
-        .collect::<Vec<(f64, f64)>>();
+        .collect::<Vec<(FloatType, FloatType)>>();
 
     for (index, variant) in [false, true].iter().enumerate() {
         let eps_array = [1e-5, 0.0];
         let algorithm_params = eps_array
             .iter()
             .map(|eps| (*variant, *eps))
-            .collect::<Vec<(bool, f64)>>();
+            .collect::<Vec<(bool, FloatType)>>();
 
         let (main_circle_radiuse, mut circles) =
             random_single_case_console(test_number, 500, &algorithm_params, &alpha_q1_pairs);

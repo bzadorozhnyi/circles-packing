@@ -1,4 +1,4 @@
-use crate::circle::Circle;
+use crate::{circle::Circle, utils::FloatType};
 
 use super::{
     ralgo::{ralg5, ralgo_result_with_iterations},
@@ -8,12 +8,12 @@ use super::{
 };
 
 pub fn dichotomy_step_ralgo(
-    main_circle_radiuse: f64,
+    main_circle_radiuse: FloatType,
     circles: &Vec<Circle>,
     reset_step: bool,
-    eps: f64,
+    eps: FloatType,
     ralgo_params: &RalgoParams,
-) -> (f64, Vec<Circle>) {
+) -> (FloatType, Vec<Circle>) {
     let mut x = circles_to_dvector(circles, main_circle_radiuse);
     let circles_radiuses =
         nalgebra::DVector::from_vec(Vec::from_iter(circles.iter().map(|c| c.radius)));
@@ -46,10 +46,10 @@ pub fn dichotomy_step_ralgo(
 }
 
 pub fn dichotomy_step_ralgo_result_with_iterations(
-    main_circle_radiuse: f64,
+    main_circle_radiuse: FloatType,
     circles: &Vec<Circle>,
     reset_step: bool,
-    eps: f64,
+    eps: FloatType,
     ralgo_params: &RalgoParams,
 ) -> RalgoResult {
     let mut x = circles_to_dvector(circles, main_circle_radiuse);

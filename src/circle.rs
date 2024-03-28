@@ -1,9 +1,9 @@
-use crate::point::Point;
+use crate::{point::Point, utils::FloatType};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Circle {
     pub center: Option<Point>,
-    pub radius: f64,
+    pub radius: FloatType,
 }
 
 impl Circle {
@@ -14,14 +14,14 @@ impl Circle {
         }
     }
 
-    pub fn new(radius: f64, center: Point) -> Self {
+    pub fn new(radius: FloatType, center: Point) -> Self {
         Circle {
             center: Some(center),
             radius,
         }
     }
 
-    pub fn with_radius(radius: f64) -> Self {
+    pub fn with_radius(radius: FloatType) -> Self {
         Circle {
             center: None,
             radius,
@@ -52,7 +52,7 @@ impl Circle {
         false
     }
 
-    pub fn is_inside_main_circle(&self, main_circle_radius: f64) -> bool {
+    pub fn is_inside_main_circle(&self, main_circle_radius: FloatType) -> bool {
         if let Some(center) = self.center.as_ref() {
             let distance = (center.x.powi(2) + center.y.powi(2)).sqrt();
             return distance <= (main_circle_radius - self.radius);

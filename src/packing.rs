@@ -6,8 +6,9 @@ use std::cmp::min;
 
 use crate::circle::*;
 use crate::point::Point;
+use crate::utils::FloatType;
 
-fn get_rotated_point(y_coord: f64, angle: f64) -> Point {
+fn get_rotated_point(y_coord: FloatType, angle: FloatType) -> Point {
     return Point {
         x: y_coord * angle.sin(),
         y: y_coord * angle.cos(),
@@ -17,29 +18,29 @@ fn get_rotated_point(y_coord: f64, angle: f64) -> Point {
 fn center_of_small_circle_touch_main(
     prev_circle: &Circle,
     small_circle: &Circle,
-    main_circle_radius: f64,
+    main_circle_radius: FloatType,
 ) -> Option<(Point, Point)> {
     if let (Some(center_prev), Some(_)) =
         (prev_circle.center.as_ref(), small_circle.center.as_ref())
     {
-        let e: f64 = center_prev.x.powi(2)
+        let e: FloatType = center_prev.x.powi(2)
             + center_prev.y.powi(2)
             + (main_circle_radius - small_circle.radius).powi(2)
             - (small_circle.radius + prev_circle.radius + 0.1).powi(2);
 
-        let a: f64 = 4.0 * (center_prev.x.powi(2) + center_prev.y.powi(2));
-        let b: f64 = -4.0 * center_prev.x * e;
-        let c: f64 = e.powi(2)
+        let a: FloatType = 4.0 * (center_prev.x.powi(2) + center_prev.y.powi(2));
+        let b: FloatType = -4.0 * center_prev.x * e;
+        let c: FloatType = e.powi(2)
             - ((2.0 * center_prev.y).powi(2))
                 * ((main_circle_radius - small_circle.radius).powi(2));
 
-        let d: f64 = b.powi(2) - 4.0 * a * c;
+        let d: FloatType = b.powi(2) - 4.0 * a * c;
         if d <= 0.0 || a == 0.0 {
             return None;
         }
 
-        let x1: f64 = (-b + d.sqrt()) / (2.0 * a);
-        let x2: f64 = (-b - d.sqrt()) / (2.0 * a);
+        let x1: FloatType = (-b + d.sqrt()) / (2.0 * a);
+        let x2: FloatType = (-b - d.sqrt()) / (2.0 * a);
 
         let p1: Point = Point {
             x: x1,
@@ -70,9 +71,9 @@ fn closest_center_to_two_touching_circles(
             return None;
         }
 
-        let delta: f64 = 1e-6;
+        let delta: FloatType = 1e-6;
 
-        let mut a: nalgebra::Vector2<f64> = nalgebra::Vector2::new(start_point.x, start_point.y);
+        let mut a: nalgebra::Vector2<FloatType> = nalgebra::Vector2::new(start_point.x, start_point.y);
 
         for _ in 0..10 {
             let j = nalgebra::Matrix2::new(
@@ -82,16 +83,16 @@ fn closest_center_to_two_touching_circles(
                 -2.0 * c2_center.y + 2.0 * a[1],
             );
 
-            let r: nalgebra::Vector2<f64> = nalgebra::Vector2::new(
+            let r: nalgebra::Vector2<FloatType> = nalgebra::Vector2::new(
                 (c1_center.x - a[0]).powi(2) + (c1_center.y - a[1]).powi(2)
                     - (c1.radius + c3.radius + 0.01).powi(2),
                 (c2_center.x - a[0]).powi(2) + (c2_center.y - a[1]).powi(2)
                     - (c2.radius + c3.radius + 0.01).powi(2),
             );
 
-            let prev_a: nalgebra::Vector2<f64> = a.clone();
+            let prev_a: nalgebra::Vector2<FloatType> = a.clone();
 
-            if j.determinant().abs() < 1e-6_f64 {
+            if j.determinant().abs() < 1e-6 as FloatType {
                 return None;
             }
 
@@ -107,11 +108,11 @@ fn closest_center_to_two_touching_circles(
     }
 }
 
-fn extra_angle(r1: f64, r2: f64, main_circle_radius: f64) -> f64 {
+fn extra_angle(r1: FloatType, r2: FloatType, main_circle_radius: FloatType) -> FloatType {
     return (r1 / (main_circle_radius - r1)).asin() + (r2 / (main_circle_radius - r2)).asin();
 }
 
-fn pack_circles(radiuses: &Vec<f64>, main_circle_radius: f64) -> Option<Vec<Circle>> {
+fn pack_circles(radiuses: &Vec<FloatType>, main_circle_radius: FloatType) -> Option<Vec<Circle>> {
     let mut circles: Vec<Circle> = radiuses
         .iter()
         .map(|&radius| Circle::with_radius(radius))
@@ -123,7 +124,7 @@ fn pack_circles(radiuses: &Vec<f64>, main_circle_radius: f64) -> Option<Vec<Circ
     });
 
     let mut level_of_placed_circle_indices: Vec<usize> = vec![0];
-    let mut prev_circle_angle: f64 = 0.0;
+    let mut prev_circle_angle: FloatType = 0.0;
 
     for index in 1..circles.len() {
         let approximate_angle = prev_circle_angle
@@ -248,7 +249,7 @@ fn pack_circles(radiuses: &Vec<f64>, main_circle_radius: f64) -> Option<Vec<Circ
     Some(circles)
 }
 
-pub fn is_valid_pack(main_circle_radius: f64, circles: &Vec<Circle>) -> bool {
+pub fn is_valid_pack(main_circle_radius: FloatType, circles: &Vec<Circle>) -> bool {
     if circles
         .iter()
         .any(|circle| !circle.is_inside_main_circle(main_circle_radius))
@@ -267,9 +268,9 @@ pub fn is_valid_pack(main_circle_radius: f64, circles: &Vec<Circle>) -> bool {
     true
 }
 
-pub fn find_answer(radiuses: &mut Vec<f64>, number_of_iterations: u32) -> (f64, Vec<Circle>) {
+pub fn find_answer(radiuses: &mut Vec<FloatType>, number_of_iterations: u32) -> (FloatType, Vec<Circle>) {
     let number_of_circles: usize = radiuses.len();
-    let mut main_circle_radius: f64 = (radiuses.iter().sum::<f64>() as f64).ceil();
+    let mut main_circle_radius: FloatType = (radiuses.iter().sum::<FloatType>() as FloatType).ceil();
 
     let mut answer: Vec<Circle> = (0..number_of_circles).map(|_| Circle::empty()).collect();
     let mut new_circles: Vec<Circle> = Vec::new();
@@ -277,7 +278,7 @@ pub fn find_answer(radiuses: &mut Vec<f64>, number_of_iterations: u32) -> (f64, 
     let mut rng = StdRng::seed_from_u64(0);
 
     for _ in 0..number_of_iterations {
-        let (mut left, mut right) = (0_f64, main_circle_radius);
+        let (mut left, mut right) = (0 as FloatType, main_circle_radius);
 
         while (right - left).abs() >= 1e-4 {
             let middle = (left + right) / 2.0;
@@ -291,7 +292,7 @@ pub fn find_answer(radiuses: &mut Vec<f64>, number_of_iterations: u32) -> (f64, 
         }
 
         if new_circles.iter().all(|circle| circle.center.is_some()) {
-            let new_main_circle_radius: f64 = 1.001 * right;
+            let new_main_circle_radius: FloatType = 1.001 * right;
 
             if new_main_circle_radius < main_circle_radius
                 && is_valid_pack(new_main_circle_radius, &new_circles)

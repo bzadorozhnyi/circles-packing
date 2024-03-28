@@ -2,7 +2,7 @@ use crate::{
     circle::Circle,
     packing::is_valid_pack,
     point::Point,
-    ralgo::{dichotomy_step_ralgo::dichotomy_step_ralgo, ralgo_params::RalgoParams},
+    ralgo::{dichotomy_step_ralgo::dichotomy_step_ralgo, ralgo_params::RalgoParams}, utils::FloatType,
 };
 use rand::{rngs::StdRng, Rng, SeedableRng};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
@@ -11,10 +11,10 @@ use std::
 ;
 
 fn generate_random_arrangement(
-    main_circle_radius: f64,
+    main_circle_radius: FloatType,
     rng: &Arc<Mutex<StdRng>>,
-    radiuses: &Vec<f64>,
-) -> (Vec<Circle>, f64) {
+    radiuses: &Vec<FloatType>,
+) -> (Vec<Circle>, FloatType) {
     let mut circles = vec![];
     for i in 0..radiuses.len() {
         let mut rng = rng.lock().unwrap();
@@ -34,7 +34,7 @@ fn generate_random_arrangement(
         circles.push(Circle::new(radiuses[i], Point { x, y }))
     }
 
-    let mut r = f64::MAX;
+    let mut r = FloatType::MAX;
 
     for i in 0..circles.len() {
         let center_i = circles[i].center.unwrap();
@@ -52,7 +52,7 @@ fn generate_random_arrangement(
     return (circles, r);
 }
 
-fn get_updated_main_cirlce_radius(circles: &Vec<Circle>, r: f64) -> f64 {
+fn get_updated_main_cirlce_radius(circles: &Vec<Circle>, r: FloatType) -> FloatType {
     return circles
         .iter()
         .map(|c| (c.center.unwrap().x.powi(2) + c.center.unwrap().y.powi(2)).sqrt() + r)
@@ -63,14 +63,14 @@ fn get_updated_main_cirlce_radius(circles: &Vec<Circle>, r: f64) -> f64 {
 pub fn random_single_case_console(
     test_number: u32,
     launches: usize,
-    algorithm_params: &[(bool, f64)],
-    alpha_q1_pairs: &Vec<(f64, f64)>,
-) -> (f64, Vec<Circle>) {
+    algorithm_params: &[(bool, FloatType)],
+    alpha_q1_pairs: &Vec<(FloatType, FloatType)>,
+) -> (FloatType, Vec<Circle>) {
     let rng = Arc::new(Mutex::new(StdRng::seed_from_u64(0)));
-    let radiuses = (1..=test_number).map(|x| x as f64).collect::<Vec<_>>();
-    let gen_main_circle_radius: f64 = radiuses.iter().map(|r| r.powi(2)).sum::<f64>().sqrt() * 1.2;
+    let radiuses = (1..=test_number).map(|x| x as FloatType).collect::<Vec<_>>();
+    let gen_main_circle_radius: FloatType = radiuses.iter().map(|r| r.powi(2)).sum::<FloatType>().sqrt() * 1.2;
 
-    let answer_main_circle_radius = Arc::new(Mutex::new(f64::MAX));
+    let answer_main_circle_radius = Arc::new(Mutex::new(FloatType::MAX));
     let answer_circles = Arc::new(Mutex::new(Vec::<Circle>::new()));
 
     for (alpha, q1) in alpha_q1_pairs {

@@ -1,6 +1,8 @@
 use std::time::Instant;
 
-pub fn measure_time<F, T>(function: F) -> (f64, T)
+pub type FloatType = f64;
+
+pub fn measure_time<F, T>(function: F) -> (FloatType, T)
 where
     F: FnOnce() -> T,
 {
@@ -8,7 +10,7 @@ where
     let function_result = function();
     let end_time = Instant::now();
 
-    let time = (end_time - start_time).as_secs_f64();
+    let time = (end_time - start_time).as_secs_f64() as FloatType;
 
     return (time, function_result);
 }

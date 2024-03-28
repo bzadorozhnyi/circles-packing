@@ -1,7 +1,9 @@
+use crate::utils::FloatType;
+
 #[derive(Clone, Copy, Debug)]
 pub struct Point {
-    pub x: f64,
-    pub y: f64,
+    pub x: FloatType,
+    pub y: FloatType,
 }
 
 impl Point {

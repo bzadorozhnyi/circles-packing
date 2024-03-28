@@ -1,23 +1,23 @@
-use crate::ralgo::utils::concat_gradients;
+use crate::{ralgo::utils::concat_gradients, utils::FloatType};
 
 pub fn calcfg(
-    x: &nalgebra::DVector<f64>,
-    radiuses: &nalgebra::DVector<f64>,
-) -> (f64, nalgebra::DVector<f64>) {
+    x: &nalgebra::DVector<FloatType>,
+    radiuses: &nalgebra::DVector<FloatType>,
+) -> (FloatType, nalgebra::DVector<FloatType>) {
     let number_of_circles = radiuses.len();
 
     let cx = x.rows(0, number_of_circles);
     let cy = x.rows(number_of_circles, number_of_circles);
     let main_circle_radius = x[x.len() - 1];
 
-    let mut gx = nalgebra::DVector::<f64>::zeros(number_of_circles);
-    let mut gy = nalgebra::DVector::<f64>::zeros(number_of_circles);
-    let mut gr = 1_f64;
+    let mut gx = nalgebra::DVector::<FloatType>::zeros(number_of_circles);
+    let mut gy = nalgebra::DVector::<FloatType>::zeros(number_of_circles);
+    let mut gr = 1 as FloatType;
 
     let mut f = main_circle_radius;
-    const P1: f64 = 2000.0;
-    const P2: f64 = 1000.0;
-    const EPS: f64 = 1e-24;
+    const P1: FloatType = 2000.0;
+    const P2: FloatType = 1000.0;
+    const EPS: FloatType = 1e-24;
 
     for i in 0..number_of_circles {
         let mut temp =
