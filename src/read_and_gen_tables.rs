@@ -271,7 +271,10 @@ pub fn read_and_gen_random_single_case_iterations(
             let alpha = captures.get(1).unwrap().as_str();
             let q1 = captures.get(2).unwrap().as_str();
 
-            return Some((alpha.parse::<FloatType>().unwrap(), q1.parse::<FloatType>().unwrap()));
+            return Some((
+                alpha.parse::<FloatType>().unwrap(),
+                q1.parse::<FloatType>().unwrap(),
+            ));
         } else {
             None
         }
@@ -315,7 +318,8 @@ pub fn read_and_gen_random_single_case_iterations(
                         start_column + block_index * block_size + eps_index * 2 * block_size;
                     let mut data: Vec<BlockData> = vec![];
                     for row in 1..=number_of_launches {
-                        let r_start = range.get((row, 2)).unwrap().get_float().unwrap() as FloatType;
+                        let r_start =
+                            range.get((row, 2)).unwrap().get_float().unwrap() as FloatType;
                         let r = range.get((row, 3)).unwrap().get_float().unwrap() as FloatType;
                         let circle_radius = range
                             .get((row, current_block_first_column))
@@ -427,11 +431,20 @@ pub fn read_and_gen_random_single_case_iterations(
         let x_axis_name = "Бали".to_string();
         let y_axis_name = "alpha / q1".to_string();
 
+        let start_of_variants_range = 3;
+        let end_of_variants_range = workbook.sheet_names().len() + 2;
+
         add_chart(
             output_worksheet,
-            &[&format!("{}!$G$3:$G$32", &eps_sheet_name)],
+            &[&format!(
+                "{}!$G${start_of_variants_range}:$G${end_of_variants_range}",
+                &eps_sheet_name
+            )],
             &[&"Варіант 1".to_string()],
-            &[&format!("{}!$CW$3:$CW$32", output_worksheet.name())],
+            &[&format!(
+                "{}!$CW${start_of_variants_range}:$CW${end_of_variants_range}",
+                output_worksheet.name()
+            )],
             &[Color::Green],
             &x_axis_name,
             &y_axis_name,
@@ -440,9 +453,15 @@ pub fn read_and_gen_random_single_case_iterations(
         );
         add_chart(
             output_worksheet,
-            &[&format!("{}!$U$3:$U$32", &eps_sheet_name)],
+            &[&format!(
+                "{}!$U${start_of_variants_range}:$U${end_of_variants_range}",
+                &eps_sheet_name
+            )],
             &[&"Варіант 2".to_string()],
-            &[&format!("{}!$CW$3:$CW$32", output_worksheet.name())],
+            &[&format!(
+                "{}!$CW${start_of_variants_range}:$CW${end_of_variants_range}",
+                output_worksheet.name()
+            )],
             &[Color::Red],
             &x_axis_name,
             &y_axis_name,
@@ -452,13 +471,25 @@ pub fn read_and_gen_random_single_case_iterations(
         add_chart(
             output_worksheet,
             &[
-                &format!("{}!$G$3:$G$32", &eps_sheet_name),
-                &format!("{}!$U$3:$U$32", &eps_sheet_name),
+                &format!(
+                    "{}!$G${start_of_variants_range}:$G${end_of_variants_range}",
+                    &eps_sheet_name
+                ),
+                &format!(
+                    "{}!$U${start_of_variants_range}:$U${end_of_variants_range}",
+                    &eps_sheet_name
+                ),
             ],
             &[&"Варіант 1".to_string(), &"Варіант 2".to_string()],
             &[
-                &format!("{}!$CW$3:$CW$32", output_worksheet.name()),
-                &format!("{}!$CW$3:$CW$32", output_worksheet.name()),
+                &format!(
+                    "{}!$CW${start_of_variants_range}:$CW${end_of_variants_range}",
+                    output_worksheet.name()
+                ),
+                &format!(
+                    "{}!$CW${start_of_variants_range}:$CW${end_of_variants_range}",
+                    output_worksheet.name()
+                ),
             ],
             &[Color::Green, Color::Red],
             &x_axis_name,
@@ -486,7 +517,10 @@ pub fn read_and_gen_random_single_case_iterations(
 
         add_chart_line(
             output_worksheet,
-            &[&format!("{}!$G$3:$G$32", &eps_sheet_name)],
+            &[&format!(
+                "{}!$G${start_of_variants_range}:$G${end_of_variants_range}",
+                &eps_sheet_name
+            )],
             &[&"Варіант 1".to_string()],
             &mut vec![&mut format1.clone()],
             99,
@@ -494,7 +528,10 @@ pub fn read_and_gen_random_single_case_iterations(
         );
         add_chart_line(
             output_worksheet,
-            &[&format!("{}!$U$3:$U$32", &eps_sheet_name)],
+            &[&format!(
+                "{}!$U${start_of_variants_range}:$U${end_of_variants_range}",
+                &eps_sheet_name
+            )],
             &[&"Варіант 2".to_string()],
             &mut vec![&mut format2.clone()],
             99,
@@ -503,8 +540,14 @@ pub fn read_and_gen_random_single_case_iterations(
         add_chart_line(
             output_worksheet,
             &[
-                &format!("{}!$G$3:$G$32", &eps_sheet_name),
-                &format!("{}!$U$3:$U$32", &eps_sheet_name),
+                &format!(
+                    "{}!$G${start_of_variants_range}:$G${end_of_variants_range}",
+                    &eps_sheet_name
+                ),
+                &format!(
+                    "{}!$U${start_of_variants_range}:$U${end_of_variants_range}",
+                    &eps_sheet_name
+                ),
             ],
             &[&"Варіант 1".to_string(), &"Варіант 2".to_string()],
             &mut vec![&mut format1.clone(), &mut format2.clone()],
@@ -517,9 +560,15 @@ pub fn read_and_gen_random_single_case_iterations(
 
         add_chart(
             output_worksheet,
-            &[&format!("{}!$J$3:$J$32", output_worksheet.name())],
+            &[&format!(
+                "{}!$J${start_of_variants_range}:$J${end_of_variants_range}",
+                output_worksheet.name()
+            )],
             &[&"Варіант 1".to_string()],
-            &[&format!("{}!$G$3:$G$32", &eps_sheet_name)],
+            &[&format!(
+                "{}!$G${start_of_variants_range}:$G${end_of_variants_range}",
+                &eps_sheet_name
+            )],
             &[Color::Green],
             &x_axis_name,
             &y_axis_name,
@@ -528,9 +577,15 @@ pub fn read_and_gen_random_single_case_iterations(
         );
         add_chart(
             output_worksheet,
-            &[&format!("{}!$X$3:$X$32", output_worksheet.name())],
+            &[&format!(
+                "{}!$X${start_of_variants_range}:$X${end_of_variants_range}",
+                output_worksheet.name()
+            )],
             &[&"Варіант 2".to_string()],
-            &[&format!("{}!$U$3:$U$32", &eps_sheet_name)],
+            &[&format!(
+                "{}!$U${start_of_variants_range}:$U${end_of_variants_range}",
+                &eps_sheet_name
+            )],
             &[Color::Red],
             &x_axis_name,
             &y_axis_name,
@@ -541,13 +596,25 @@ pub fn read_and_gen_random_single_case_iterations(
         add_chart(
             output_worksheet,
             &[
-                &format!("{}!$J$3:$J$32", output_worksheet.name()),
-                &format!("{}!$X$3:$X$32", output_worksheet.name()),
+                &format!(
+                    "{}!$J${start_of_variants_range}:$J${end_of_variants_range}",
+                    output_worksheet.name()
+                ),
+                &format!(
+                    "{}!$X${start_of_variants_range}:$X${end_of_variants_range}",
+                    output_worksheet.name()
+                ),
             ],
             &[&"Варіант 1".to_string(), &"Варіант 2".to_string()],
             &[
-                &format!("{}!$G$3:$G$32", &eps_sheet_name),
-                &format!("{}!$U$3:$U$32", &eps_sheet_name),
+                &format!(
+                    "{}!$G${start_of_variants_range}:$G${end_of_variants_range}",
+                    &eps_sheet_name
+                ),
+                &format!(
+                    "{}!$U${start_of_variants_range}:$U${end_of_variants_range}",
+                    &eps_sheet_name
+                ),
             ],
             &[Color::Green, Color::Red],
             &x_axis_name,

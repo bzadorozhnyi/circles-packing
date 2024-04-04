@@ -139,7 +139,7 @@ pub fn random_single_case_iterations(
     launches: usize,
     algorithm_params: &[(bool, FloatType)],
     ralgo_params: &RalgoParams,
-    alpha_q1_pairs: Vec<(FloatType, FloatType)>,
+    alpha_q1_pairs: &Vec<(FloatType, FloatType)>,
 ) -> io::Result<()> {
     let rng = Arc::new(Mutex::new(StdRng::seed_from_u64(0)));
     let (_, radiuses) = get_input_data(test_number as u32);
@@ -150,7 +150,7 @@ pub fn random_single_case_iterations(
     let mut workbook: Workbook = Workbook::new();
 
     for (alpha, q1) in alpha_q1_pairs {
-        let ralgo_params = ralgo_params.with_alpha(alpha).with_q1(q1);
+        let ralgo_params = ralgo_params.with_alpha(*alpha).with_q1(*q1);
         println!("Generate worksheet with ralgo params = {ralgo_params:?}");
 
         let worksheet = Arc::new(Mutex::new(workbook.add_worksheet()));

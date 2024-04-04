@@ -22,7 +22,6 @@ mod read_and_gen_tables;
 mod utils;
 
 fn main() {
-    packomania::find_best_heuristic(5);
     let variants_array = [false, true];
     let eps_array = [0.0];
     let algorithm_params = eps_array
@@ -37,18 +36,14 @@ fn main() {
         .flat_map(|alpha| q1_array.iter().map(|q1| (*alpha, *q1)))
         .collect::<Vec<(FloatType, FloatType)>>();
 
-    let ralgo_params = RalgoParams::default().with_max_iterations(100_000);
+    let ralgo_params = RalgoParams::default().with_max_iterations(15_000);
 
-    for (alpha, q1) in &alpha_q1_pairs {
-        println!("alpha = {alpha}, q1 = {q1}");
-        let ralgo_params = ralgo_params.with_alpha(*alpha).with_q1(*q1);
-        let (total_time_of_heuristic, _) =
-            measure_time(|| heuristic_all_cases(&algorithm_params, &ralgo_params));
-        println!(
-            "Total time (heuristic): {}, alpha = {}, q1 = {}",
-            total_time_of_heuristic, alpha, q1
-        );
-    }
+    random_single_case_iterations(50, 50, &algorithm_params, &ralgo_params, &alpha_q1_pairs).ok();
 
-    read_and_gen_tables::read_and_gen_heuristic(&alpha_q1_pairs).unwrap();
+    read_and_gen_tables::read_and_gen_random_single_case_iterations(
+        50,
+        &variants_array,
+        &eps_array,
+    )
+    .unwrap();
 }
