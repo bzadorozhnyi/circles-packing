@@ -1,7 +1,11 @@
-use crate::{evaluate::{
-    heuristic_single_case_console::heuristic_single_case_console,
-    random_single_case_console::random_single_case_console,
-}, utils::FloatType};
+use crate::{
+    evaluate::{
+        heuristic_single_case_console::heuristic_single_case_console,
+        random_single_case_console::random_single_case_console,
+    },
+    packing::is_valid_pack,
+    utils::FloatType,
+};
 
 fn get_input_data(test_number: u32) -> (FloatType, Vec<FloatType>, Vec<(FloatType, FloatType)>) {
     use std::str::FromStr;
@@ -129,6 +133,13 @@ pub fn find_best_heuristic(test_number: u32) {
         );
         println!("{packomania_answer_str}");
         println!("{main_circle_radiuse}");
+        println!(
+            "{}",
+            is_valid_pack(
+                main_circle_radiuse_str.parse::<FloatType>().unwrap(),
+                &circles
+            )
+        );
         for circle in circles {
             println!(
                 "{} {:.15} {:.15}",
