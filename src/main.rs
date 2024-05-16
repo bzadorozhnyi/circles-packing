@@ -1,3 +1,4 @@
+use packomania::find_best_heuristic;
 use utils::FloatType;
 
 use crate::{
@@ -22,6 +23,7 @@ mod read_and_gen_tables;
 mod utils;
 
 fn main() {
+    find_best_heuristic(10);
     let variants_array = [false, true];
     let eps_array = [0.0];
     let algorithm_params = eps_array
@@ -36,14 +38,13 @@ fn main() {
         .flat_map(|alpha| q1_array.iter().map(|q1| (*alpha, *q1)))
         .collect::<Vec<(FloatType, FloatType)>>();
 
-    let ralgo_params = RalgoParams::default().with_max_iterations(15_000);
+    let ralgo_params = RalgoParams::default()
+        .with_alpha(1.5)
+        .with_q1(1.0)
+        .with_max_iterations(100_000);
 
-    random_single_case_iterations(50, 50, &algorithm_params, &ralgo_params, &alpha_q1_pairs).ok();
-
-    read_and_gen_tables::read_and_gen_random_single_case_iterations(
-        50,
-        &variants_array,
-        &eps_array,
-    )
-    .unwrap();
+    let (heuristic_all_cases_time, _) = measure_time(|| {
+        heuristic_all_cases(&algorithm_params, &ralgo_params).unwrap();
+    });
+    println!("TIME: {heuristic_all_cases_time}");
 }
