@@ -34,6 +34,15 @@ pub fn draw_plot(main_circle_radius: FloatType, circles: &Vec<circle::Circle>) {
         return EmptyElement::at((c.center.unwrap().x, c.center.unwrap().y))
             + Circle::new(
                 (0, 0),
+                3,
+                ShapeStyle {
+                    color: BLUE.mix(0.6),
+                    filled: true,
+                    stroke_width: 2,
+                },
+            )
+            + Circle::new(
+                (0, 0),
                 convert_radius(c.radius),
                 ShapeStyle {
                     color: BLUE.mix(0.6),
