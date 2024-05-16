@@ -13,7 +13,7 @@ pub fn heuristic_single_case_console(
     alpha_q1_pairs: &Vec<(FloatType, FloatType)>,
 ) -> (FloatType, Vec<Circle>) {
     let mut radiuses = (1..=test_number).map(|x| x as FloatType).collect::<Vec<_>>();
-    let (main_circle_radius, circles) = find_answer(&mut radiuses, 10000);
+    let (main_circle_radius, circles) = find_answer(&mut radiuses, 100_000);
 
     let mut answer_main_circle_radius = main_circle_radius;
     let mut answer_circles = circles.clone();
