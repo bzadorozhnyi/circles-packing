@@ -2,7 +2,6 @@
 input 
 output
 .vscode
-circle.png
 src/main.exe
 src/main.pdb
 /results
