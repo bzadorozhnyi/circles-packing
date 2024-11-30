@@ -33,3 +33,7 @@ A big part of the code has been used to evaluate test sets (`input folder`) and 
 > no `input` and `output` folders in the repository. Check the code in the `evaluate` folder to know the structure of input and output files.
 
 ## Example of results
+
+<p align="center">
+  <img src="./circle.png">
+</p>
