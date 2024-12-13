@@ -1,4 +1,4 @@
-use nalgebra::{self};
+use nalgebra::{self, DMatrix, DVector};
 
 use crate::utils::FloatType;
 
@@ -97,13 +97,13 @@ pub fn ralgo_result_with_iterations(
     for iter in 0..max_iterations as u32 {
         let mut g1: nalgebra::DVector<FloatType> = b_matrix.tr_mul(&g0);
 
-        let dx: nalgebra::DVector<FloatType> = (&b_matrix * &g1) / g1.norm();
+        let dx = &b_matrix * (&g1 / g1.norm());
         let dx_norm = dx.norm();
 
         let mut f;
         let (mut d, mut ls, mut ddx) = (1.0 as FloatType, 0_u32, 0.0 as FloatType);
         while d > 0.0 {
-            x -= h * &dx;
+            x.axpy(-h, &dx, 1.0);
             ddx += h * dx_norm;
 
             (f, g1) = calcfg(&x, radiuses);
@@ -136,10 +136,8 @@ pub fn ralgo_result_with_iterations(
             return (iter, calcfg_calls, result_x);
         }
 
-        let mut r = &b_matrix.transpose() * (&g1 - &g0);
-        r /= r.norm();
-
-        b_matrix += (1.0 / alpha - 1.0) * &b_matrix * &r * &r.transpose();
+        let r = b_matrix.tr_mul(&(&g1 - &g0)).normalize();
+        b_matrix += (1.0 / alpha - 1.0) * (&b_matrix * &r) * &r.transpose();
         g0 = g1;
     }
 
