@@ -5,16 +5,16 @@ use crate::utils::FloatType;
 use super::calcfg::calcfg;
 
 pub fn ralg5(
-    mut x: nalgebra::DVector<FloatType>,
+    mut x: DVector<FloatType>,
     alpha: FloatType,
     mut h: FloatType,
     q1: FloatType,
     epsx: FloatType,
     epsg: FloatType,
     max_iterations: usize,
-    radiuses: &nalgebra::DVector<FloatType>,
-) -> nalgebra::DVector<FloatType> {
-    let mut b_matrix = nalgebra::DMatrix::<FloatType>::identity(x.len(), x.len());
+    radiuses: &DVector<FloatType>,
+) -> DVector<FloatType> {
+    let mut b_matrix = DMatrix::<FloatType>::identity(x.len(), x.len());
 
     let mut result_x = x.clone();
     let (mut result_f, mut g0) = calcfg(&result_x, radiuses);
@@ -24,9 +24,9 @@ pub fn ralg5(
     }
 
     for _ in 0..max_iterations {
-        let mut g1: nalgebra::DVector<FloatType> = b_matrix.tr_mul(&g0);
+        let mut g1: DVector<FloatType> = b_matrix.tr_mul(&g0);
 
-        let dx: nalgebra::DVector<FloatType> = (&b_matrix * &g1) / g1.norm();
+        let dx: DVector<FloatType> = (&b_matrix * &g1) / g1.norm();
         let dx_norm = dx.norm();
 
         let mut f: FloatType;
@@ -75,16 +75,16 @@ pub fn ralg5(
 }
 
 pub fn ralgo_result_with_iterations(
-    mut x: nalgebra::DVector<FloatType>,
+    mut x: DVector<FloatType>,
     alpha: FloatType,
     mut h: FloatType,
     q1: FloatType,
     epsx: FloatType,
     epsg: FloatType,
     max_iterations: usize,
-    radiuses: &nalgebra::DVector<FloatType>,
-) -> (u32, u32, nalgebra::DVector<FloatType>) {
-    let mut b_matrix = nalgebra::DMatrix::<FloatType>::identity(x.len(), x.len());
+    radiuses: &DVector<FloatType>,
+) -> (u32, u32, DVector<FloatType>) {
+    let mut b_matrix = DMatrix::<FloatType>::identity(x.len(), x.len());
 
     let mut result_x = x.clone();
     let (mut result_f, mut g0) = calcfg(&result_x, radiuses);
@@ -95,7 +95,7 @@ pub fn ralgo_result_with_iterations(
     }
 
     for iter in 0..max_iterations as u32 {
-        let mut g1: nalgebra::DVector<FloatType> = b_matrix.tr_mul(&g0);
+        let mut g1: DVector<FloatType> = b_matrix.tr_mul(&g0);
 
         let dx = &b_matrix * (&g1 / g1.norm());
         let dx_norm = dx.norm();

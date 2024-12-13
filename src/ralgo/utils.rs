@@ -1,13 +1,15 @@
+use nalgebra::DVector;
+
 use crate::{circle, point, utils::FloatType};
 
 pub fn concat_gradients(
-    gx: &nalgebra::DVector<FloatType>,
-    gy: &nalgebra::DVector<FloatType>,
+    gx: &DVector<FloatType>,
+    gy: &DVector<FloatType>,
     gr: FloatType,
-) -> nalgebra::DVector<FloatType> {
+) -> DVector<FloatType> {
     let circles_number = gx.len();
 
-    let mut gradient = nalgebra::DVector::<FloatType>::zeros(2 * circles_number + 1);
+    let mut gradient = DVector::<FloatType>::zeros(2 * circles_number + 1);
     gradient.rows_mut(0, circles_number).copy_from(&gx);
     gradient
         .rows_mut(circles_number, circles_number)
@@ -20,7 +22,7 @@ pub fn concat_gradients(
 pub fn circles_to_dvector(
     circles: &Vec<circle::Circle>,
     main_circle_radiuse: FloatType,
-) -> nalgebra::DVector<FloatType> {
+) -> DVector<FloatType> {
     let data: Vec<FloatType> = ([
         Vec::from_iter(
             circles
@@ -35,12 +37,12 @@ pub fn circles_to_dvector(
         vec![main_circle_radiuse],
     ])
     .concat();
-    return nalgebra::DVector::from_vec(data);
+    return DVector::from_vec(data);
 }
 
 pub fn dvector_to_answer(
-    x: &nalgebra::DVector<FloatType>,
-    circles_radiuses: &nalgebra::DVector<FloatType>,
+    x: &DVector<FloatType>,
+    circles_radiuses: &DVector<FloatType>,
 ) -> (FloatType, Vec<circle::Circle>) {
     let main_circle_radiuse = x[x.len() - 1];
     let mut circles: Vec<circle::Circle> = Vec::from_iter(
@@ -59,6 +61,6 @@ pub fn dvector_to_answer(
     return (main_circle_radiuse, circles);
 }
 
-pub fn get_last(d: &nalgebra::DVector<FloatType>) -> FloatType {
+pub fn get_last(d: &DVector<FloatType>) -> FloatType {
     return d[d.len() - 1];
 }

@@ -1,17 +1,19 @@
+use nalgebra::DVector;
+
 use crate::{ralgo::utils::concat_gradients, utils::FloatType};
 
 pub fn calcfg(
-    x: &nalgebra::DVector<FloatType>,
-    radiuses: &nalgebra::DVector<FloatType>,
-) -> (FloatType, nalgebra::DVector<FloatType>) {
+    x: &DVector<FloatType>,
+    radiuses: &DVector<FloatType>,
+) -> (FloatType, DVector<FloatType>) {
     let number_of_circles = radiuses.len();
 
     let cx = x.rows(0, number_of_circles);
     let cy = x.rows(number_of_circles, number_of_circles);
     let main_circle_radius = x[x.len() - 1];
 
-    let mut gx = nalgebra::DVector::<FloatType>::zeros(number_of_circles);
-    let mut gy = nalgebra::DVector::<FloatType>::zeros(number_of_circles);
+    let mut gx = DVector::<FloatType>::zeros(number_of_circles);
+    let mut gy = DVector::<FloatType>::zeros(number_of_circles);
     let mut gr = 1 as FloatType;
 
     let mut f = main_circle_radius;
