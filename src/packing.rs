@@ -57,7 +57,8 @@ fn center_of_small_circle_touch_main(
     }
 }
 
-pub fn closest_center_to_two_touching_circles(
+/// Find center of third circle, closest to (0, 0).
+pub fn find_third_circle_center(
     c1: &Circle,
     c2: &Circle,
     r3: FloatType,
@@ -226,7 +227,7 @@ fn pack_circles(radiuses: &Vec<FloatType>, main_circle_radius: FloatType) -> Opt
                 }
 
                 for shift in 1..=min(2_usize, level_of_placed_circle_indices.len()) {
-                    let new_circle_center: Option<Point> = closest_center_to_two_touching_circles(
+                    let new_circle_center: Option<Point> = find_third_circle_center(
                         &circles[cycle_index(&level_of_placed_circle_indices, placed_circle_index)],
                         &circles[cycle_index(
                             &level_of_placed_circle_indices,
