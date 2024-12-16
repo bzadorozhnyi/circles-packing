@@ -19,7 +19,7 @@ fn find_tangent_circle_center(
     prev_circle: &Circle,
     small_circle: &Circle,
     main_circle_radius: FloatType,
-) -> Option<(Point, Point)> {
+) -> Option<[Point; 2]> {
     if let (Some(center_prev), Some(_)) =
         (prev_circle.center.as_ref(), small_circle.center.as_ref())
     {
@@ -52,7 +52,7 @@ fn find_tangent_circle_center(
             y: (e - 2.0 * center_prev.x * x2) / (2.0 * center_prev.y),
         };
 
-        return Some((p1, p2));
+        return Some([p1, p2]);
     } else {
         return None;
     }
@@ -200,7 +200,7 @@ fn pack_circles(radiuses: &Vec<FloatType>, main_circle_radius: FloatType) -> Opt
                 &circles[i],
                 main_circle_radius,
             ) {
-                for point in [points.0, points.1] {
+                for point in points {
                     let new_circle: Circle = Circle {
                         radius: circles[i].radius,
                         center: Some(point),
