@@ -14,7 +14,8 @@ fn get_rotated_point(y_coord: FloatType, angle: FloatType) -> Point {
     };
 }
 
-fn center_of_small_circle_touch_main(
+/// Find tangent circle center to previous and main circles.
+fn find_tangent_circle_center(
     prev_circle: &Circle,
     small_circle: &Circle,
     main_circle_radius: FloatType,
@@ -194,7 +195,7 @@ fn pack_circles(radiuses: &Vec<FloatType>, main_circle_radius: FloatType) -> Opt
                 continue;
             }
 
-            if let Some(points) = center_of_small_circle_touch_main(
+            if let Some(points) = find_tangent_circle_center(
                 &circles[*placed_circle_index],
                 &circles[i],
                 main_circle_radius,
