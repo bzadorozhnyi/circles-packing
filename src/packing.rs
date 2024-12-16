@@ -1,4 +1,3 @@
-use nalgebra::{self};
 use rand::rngs::StdRng;
 use rand::Rng;
 use rand::SeedableRng;
@@ -58,51 +57,68 @@ fn center_of_small_circle_touch_main(
     }
 }
 
-fn closest_center_to_two_touching_circles(
-    start_point: Point,
+pub fn closest_center_to_two_touching_circles(
     c1: &Circle,
     c2: &Circle,
-    c3: &Circle,
+    r3: FloatType,
 ) -> Option<Point> {
     if let (Some(c1_center), Some(c2_center)) = (c1.center.as_ref(), c2.center.as_ref()) {
         if (c1_center.x - c2_center.x).powi(2) + (c1_center.y - c2_center.y).powi(2)
-            > (2.0 * c3.radius + c1.radius + c2.radius).powi(2)
+            > (2.0 * r3 + c1.radius + c2.radius).powi(2)
         {
             return None;
         }
 
+        let (x1, y1, r1) = (c1_center.x, c1_center.y, c1.radius);
+        let (x2, y2, r2) = (c2_center.x, c2_center.y, c2.radius);
+
         let delta: FloatType = 1e-6;
+        let omega = 1e-6;
 
-        let mut a: nalgebra::Vector2<FloatType> = nalgebra::Vector2::new(start_point.x, start_point.y);
-
-        for _ in 0..10 {
-            let j = nalgebra::Matrix2::new(
-                -2.0 * c1_center.x + 2.0 * a[0],
-                -2.0 * c1_center.y + 2.0 * a[1],
-                -2.0 * c2_center.x + 2.0 * a[0],
-                -2.0 * c2_center.y + 2.0 * a[1],
-            );
-
-            let r: nalgebra::Vector2<FloatType> = nalgebra::Vector2::new(
-                (c1_center.x - a[0]).powi(2) + (c1_center.y - a[1]).powi(2)
-                    - (c1.radius + c3.radius + 0.01).powi(2),
-                (c2_center.x - a[0]).powi(2) + (c2_center.y - a[1]).powi(2)
-                    - (c2.radius + c3.radius + 0.01).powi(2),
-            );
-
-            let prev_a: nalgebra::Vector2<FloatType> = a.clone();
-
-            if j.determinant().abs() < 1e-6 as FloatType {
+        if (y1 - y2).abs() < delta {
+            if (x1 - x2).abs() < delta {
                 return None;
             }
 
-            a -= j.try_inverse().expect("Square matrix") * r;
+            let x_3 = ((x1.powi(2) - x2.powi(2)) - (r1 + r3).powi(2) + (r2 + r3).powi(2))
+                / (2.0 * (x1 - x2));
 
-            if (a - prev_a).abs().iter().all(|&value| value < delta) {
-                break;
-            }
+            let y_3 = ((x1 - x_3).powi(2) - (r1 + r3).powi(2)).sqrt() + y1;
+
+            return Some(Point { x: x_3, y: y_3 });
         }
-        Some(Point { x: a[0], y: a[1] })
+
+        let t = x1.powi(2) - x2.powi(2) + y1.powi(2) - y2.powi(2) - (r1 + r3 + omega).powi(2)
+            + (r2 + r3 + omega).powi(2);
+        let p = 2.0 * (y1 - y2);
+
+        let a = p.powi(2) + 4.0 * (x1 - x2).powi(2);
+
+        let b = -2.0 * x1 * p.powi(2) + 4.0 * (y1 * p - t) * (x1 - x2);
+        let c = p.powi(2) * (x1.powi(2) + y1.powi(2) - (r1 + r3 + omega).powi(2))
+            - 2.0 * y1 * p * t
+            + t.powi(2);
+
+        let d = b.powi(2) - 4.0 * a * c;
+
+        if d < delta {
+            return None;
+        }
+
+        let sqrt_d = d.sqrt();
+        let x3_1 = (-b - sqrt_d) / (2.0 * a);
+        let x3_2 = (-b + sqrt_d) / (2.0 * a);
+
+        let y3_1 = (t - 2.0 * (x1 - x2) * x3_1) / p;
+        let y3_2 = (t - 2.0 * (x1 - x2) * x3_2) / p;
+
+        let c3_center = if x3_1.powi(2) + y3_1.powi(2) < x3_2.powi(2) + y3_2.powi(2) {
+            Point { x: x3_1, y: y3_1 }
+        } else {
+            Point { x: x3_2, y: y3_2 }
+        };
+
+        return Some(c3_center);
     } else {
         None
     }
@@ -211,13 +227,12 @@ fn pack_circles(radiuses: &Vec<FloatType>, main_circle_radius: FloatType) -> Opt
 
                 for shift in 1..=min(2_usize, level_of_placed_circle_indices.len()) {
                     let new_circle_center: Option<Point> = closest_center_to_two_touching_circles(
-                        Point::empty(),
                         &circles[cycle_index(&level_of_placed_circle_indices, placed_circle_index)],
                         &circles[cycle_index(
                             &level_of_placed_circle_indices,
                             placed_circle_index + shift,
                         )],
-                        &circles[i],
+                        circles[i].radius,
                     );
 
                     if new_circle_center.is_none() {
@@ -268,9 +283,13 @@ pub fn is_valid_pack(main_circle_radius: FloatType, circles: &Vec<Circle>) -> bo
     true
 }
 
-pub fn find_answer(radiuses: &mut Vec<FloatType>, number_of_iterations: u32) -> (FloatType, Vec<Circle>) {
+pub fn find_answer(
+    radiuses: &mut Vec<FloatType>,
+    number_of_iterations: u32,
+) -> (FloatType, Vec<Circle>) {
     let number_of_circles: usize = radiuses.len();
-    let mut main_circle_radius: FloatType = (radiuses.iter().sum::<FloatType>() as FloatType).ceil();
+    let mut main_circle_radius: FloatType =
+        (radiuses.iter().sum::<FloatType>() as FloatType).ceil();
 
     let mut answer: Vec<Circle> = (0..number_of_circles).map(|_| Circle::empty()).collect();
     let mut new_circles: Vec<Circle> = Vec::new();
