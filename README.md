@@ -1,7 +1,7 @@
 # Code for science research work
 
-> [!IMPORTANT]  
-> This is my bachelor's thesis code for "PROBLEM OF OPTIMAL PACKING OF UNEVEN CIRCLES AND APPROACHES TO ITS SOLUTION."  
+> [!IMPORTANT]
+> The improved version [here](https://github.com/bzadorozhnyi/improved_circles_packing/tree/master), please use it instead.
 
 ## Condition
 
